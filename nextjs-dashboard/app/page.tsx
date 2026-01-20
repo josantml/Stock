@@ -1,54 +1,137 @@
-import AcmeLogo from '@/app/ui/acme-logo';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import { auth } from '@/auth';
 import Link from 'next/link';
-import { lusitana } from '@/app/ui/fonts';
-import Image from 'next/image';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
-export default function Page() {
+export default async function Page() {
+  const session = await auth();
+  const isAdmin = session?.user?.role === 'admin';
+  const isClient = session?.user?.role === 'client';
+
   return (
-   
-    <main className="flex min-h-screen flex-col p-6">
-      
-      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-        { <AcmeLogo /> }
-      </div>
-      
-      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
-        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
-        <div className="relative w-0 h-0 border-l-[15px] border-r-[15px] border-b-[26px] border-l-transparent border-r-transparent border-b-black"/>
-          <p className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}>
-            <strong>Welcome to Acme.</strong> This is the example for the{' '}
-            <a href="https://nextjs.org/learn/" className="text-blue-500">
-              Next.js Learn Course
-            </a>
-            , brought to you by Vercel.
+    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <Link href="/" className="text-3xl font-bold text-blue-600">
+            StockPablo
+          </Link>
+          <nav className="flex gap-6 items-center">
+            <Link href="/shop" className="text-gray-600 hover:text-gray-800 font-medium">
+              Tienda
+            </Link>
+            {!session ? (
+              <>
+                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                  Ingresar
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/cart" className="text-gray-600 hover:text-gray-800 font-medium">
+                  🛒 Carrito
+                </Link>
+                <Link
+                  href={isAdmin ? '/dashboard' : '/dashboard'}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {isAdmin ? 'Admin' : 'Mi Cuenta'}
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="max-w-6xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          Bienvenido a StockPablo
+        </h1>
+        <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+          Tu tienda online de productos de calidad. Explora nuestro catálogo, agrega productos a tu carrito y realiza tu compra de forma segura.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link
+            href="/shop"
+            className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition"
+          >
+            Ver Tienda <ArrowRightIcon className="w-5" />
+          </Link>
+          {!session && (
+            <Link
+              href="/login"
+              className="flex items-center gap-2 bg-gray-200 text-gray-800 px-8 py-4 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Ingresar Cuenta
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            ¿Por qué elegirnos?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">🛍️</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Amplio Catálogo
+              </h3>
+              <p className="text-gray-600">
+                Encuentra una gran variedad de productos de alta calidad en nuestras categorías.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">🔒</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Compra Segura
+              </h3>
+              <p className="text-gray-600">
+                Tu información está protegida con los más altos estándares de seguridad.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">📦</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Entrega Rápida
+              </h3>
+              <p className="text-gray-600">
+                Procesa tus órdenes rápidamente y estará listo para recoger.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="bg-blue-600 text-white rounded-lg p-12 text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            ¿Listo para empezar?
+          </h2>
+          <p className="text-lg mb-8 opacity-90">
+            Explora nuestros productos y agrega lo que necesites a tu carrito.
           </p>
           <Link
-            href="/login"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
+            href="/shop"
+            className="inline-flex items-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition"
           >
-            <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
+            Ir a la Tienda <ArrowRightIcon className="w-5" />
           </Link>
         </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-          {/* Add Hero Images Here */}
-            <Image
-              src="/hero-desktop.png"
-              width={1000}
-              height={760}
-              className="hidden md:block"
-              alt="Screenshots of the dashboard project showing desktop version"
-            />
-            <Image
-              src="/hero-mobile.png"
-              width={560}
-              height={620}
-              className="block md:hidden"
-              alt="Screenshots of the dashboard project showing mobile version"
-            />
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="text-gray-400">
+            © 2026 StockPablo. Todos los derechos reservados.
+          </p>
         </div>
-      </div>
-      
+      </footer>
     </main>
   );
 }

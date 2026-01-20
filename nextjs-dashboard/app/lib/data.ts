@@ -1,4 +1,4 @@
-import postgres from 'postgres';
+import sql from './db';
 import {
   CustomerField,
   CustomersTableType,
@@ -6,22 +6,27 @@ import {
   InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
+  Product,
+  Categories,
+  OrderRow,
+  OrderDetail,
+  OrderItemRow
 } from './definitions';
 import { formatCurrency } from './utils';
-
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+import { ProductWithCategories } from './definitions';
+import { string } from 'zod';
 
 export async function fetchRevenue() {
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue[]>`SELECT * FROM revenue`;
 
-    // console.log('Data fetch completed after 3 seconds.');
+    console.log('Data fetch completed after 3 seconds.');
 
     return data;
   } catch (error) {
@@ -30,8 +35,45 @@ export async function fetchRevenue() {
   }
 }
 
+
+export async function fetchProducts() {
+  try {
+      const data = await sql<Product[]>`
+        SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
+        FROM products
+      `;
+      console.log('PRODUCTOS DESDE DB:', data);
+      return data
+  } catch (error) {
+    console.error('Database Error:', error)
+    throw new Error('Failed to fetch products.');
+  }
+
+}  
+
+
+export async function fetchCategories(): Promise<Categories[]> {
+  try {
+     const data = await sql<Categories[]>`
+      SELECT id, name, slug, description
+      FROM categories
+      ORDER BY name ASC
+     `;
+      return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch categories');
+    
+  }
+}
+
+
 export async function fetchLatestInvoices() {
   try {
+
+    console.log('Fetching Latst Invoices...');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const data = await sql<LatestInvoiceRaw[]>`
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
@@ -49,6 +91,7 @@ export async function fetchLatestInvoices() {
     throw new Error('Failed to fetch the latest invoices.');
   }
 }
+
 
 export async function fetchCardData() {
   try {
@@ -121,6 +164,7 @@ export async function fetchFilteredInvoices(
   }
 }
 
+
 export async function fetchInvoicesPages(query: string) {
   try {
     const data = await sql`SELECT COUNT(*)
@@ -142,6 +186,31 @@ export async function fetchInvoicesPages(query: string) {
   }
 }
 
+
+
+const ITEMS_LIMIT_PAGE = 4;
+export async function fetchFilteredProducts(query : string, currentPage: number){
+  const offset = (currentPage - 1) * ITEMS_LIMIT_PAGE;
+  try {
+    const productsFilter = await sql`
+      SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
+      FROM products
+      WHERE
+        products.nombre ILIKE ${`%${query}%`} OR
+        products.descripcion ILIKE ${`%${query}%`} OR
+        products.precio::text ILIKE ${`%${query}%`}
+      ORDER BY nombre ASC
+      LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
+    `;
+    return productsFilter
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch products')
+  }
+}
+
+
+
 export async function fetchInvoiceById(id: string) {
   try {
     const data = await sql<InvoiceForm[]>`
@@ -160,12 +229,68 @@ export async function fetchInvoiceById(id: string) {
       amount: invoice.amount / 100,
     }));
 
+    console.log('fetched invoice:', invoice)
     return invoice[0];
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch invoice.');
   }
 }
+
+
+
+function normalizeCaracteristicas(caracteristicas: any){
+  if(Array.isArray(caracteristicas)){
+    return caracteristicas;
+  }
+
+  if(typeof caracteristicas === 'string'){
+    try {
+      
+      const parsed = JSON.parse(caracteristicas);
+      return Object.entries(parsed).map(([key, value]) => ({
+        label: key,
+        value: String(value),
+      }));
+    } catch (error) {
+      console.error('Error parsing caracteristicas:', error);
+      return [];
+    }
+  }
+
+  if(typeof caracteristicas === 'object' && caracteristicas !== null) {
+    return Object.entries(caracteristicas).map(([key, value]) => ({
+      label: key,
+      value: String(value),
+    }));
+  }
+    return [];
+}
+
+export async function fetchProductById(id: string){
+  try {
+      const data = await sql<Product[]>`
+        SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
+        FROM products
+        WHERE products.id = ${id}
+        `;
+        const product = data[0];
+
+        if(!product){
+          return null;
+        }
+
+        return {
+          ...product,
+          caracteristicas: normalizeCaracteristicas(product.caracteristicas),
+        };
+  } catch (error) {
+    console.error('Database Error:', error)
+    throw new Error('Failed to fetch product.');
+  }
+}
+
+
 
 export async function fetchCustomers() {
   try {
@@ -183,6 +308,7 @@ export async function fetchCustomers() {
     throw new Error('Failed to fetch all customers.');
   }
 }
+
 
 export async function fetchFilteredCustomers(query: string) {
   try {
@@ -216,3 +342,221 @@ export async function fetchFilteredCustomers(query: string) {
     throw new Error('Failed to fetch customer table.');
   }
 }
+
+
+export async function fetchProductByCaT(
+  id: string
+): Promise<ProductWithCategories | null> {
+  try {
+    const data = await sql<ProductWithCategories[]>`
+      SELECT
+        p.id,
+        p.nombre,
+        p.descripcion,
+        p.precio,
+        p.imagen,
+        p.stock,
+        p.caracteristicas,
+        COALESCE(
+          jsonb_agg(
+            DISTINCT jsonb_build_object(
+              'id', c.id,
+              'name', c.name,
+              'slug', c.slug,
+              'description', c.description
+            )
+          ) FILTER (WHERE c.id IS NOT NULL),
+          '[]'::jsonb
+        ) AS categories
+      FROM products p
+      LEFT JOIN product_categories pc ON p.id = pc.product_id
+      LEFT JOIN categories c ON pc.category_id = c.id
+      WHERE p.id = ${id}
+      GROUP BY p.id;
+    `;
+
+    const product = data[0];
+
+    if (!product) {
+      return null;
+    }
+
+    return {
+      ...product,
+      caracteristicas: normalizeCaracteristicas(product.caracteristicas),
+      categories: product.categories ?? [],
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch product with categories.');
+  }
+}
+
+
+
+// Obtener los productos por el slug de la categoria
+export async function fetchProductByCategorySlug(slug: string): Promise<Product[]>{
+  const products = await sql<Product[]>`
+    SELECT DISTINCT p.id,
+    p.nombre,
+    p.descripcion,
+    p.precio,
+    p.imagen,
+    p.stock,
+    p.caracteristicas
+    FROM products p
+    JOIN product_categories pc ON p.id = pc.product_id
+    JOIN categories c ON c.id = pc.category_id
+    WHERE c.slug = ${slug}
+    ORDER BY p.nombre ASC;
+    `;
+
+    return products.map((product) => ({
+      ...product,
+      caracteristicas: normalizeCaracteristicas(product.caracteristicas),
+    }));
+}
+
+
+
+//Obtener los pedidos de compra en formato tabla
+
+export async function fetchOrders(){
+  try {
+    const dataOrder = await sql<OrderRow[]>`
+      SELECT o.id,
+        o.status,
+        o.total,
+        o.created_at,
+        o.invoice_id,
+        o.customer_name,
+        o.customer_email,
+        COUNT (oi.id) AS items_count
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `;
+    return dataOrder;
+
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Error: No se pudieron obtener los pedidos');
+  }
+}
+
+
+
+// Obtener detalle de la orden
+
+export async function fetchOrderById(id: string) {
+  try {
+    const detailOrder = await sql<OrderDetail[]>`
+      SELECT
+          o.id,
+          o.status,
+          o.total,
+          o.created_at,
+          o.customer_name,
+          o.customer_email,
+          jsonb_build_object(
+            'id', i.id,
+            'pdf_url', i.pdf_url
+          ) AS invoice
+        FROM orders o
+        LEFT JOIN invoices i ON i.id = o.invoice_id
+        WHERE o.id = ${id}
+    `;
+    return detailOrder[0] ?? null;
+    
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Error: NO se pudo obtener el detalle del pedido');
+  }
+}
+
+
+
+// Obtener los productos de la orden
+
+export async function fetchOrderItem(orderId: string){
+  try {
+    const orderItem = await sql<OrderItemRow[]>`
+      SELECT oi.id,
+        oi.product_id,
+        p.nombre AS product_name,
+        p.imagen AS product_image,
+        oi.quantity,
+        oi.price,
+        COALESCE(oi.notes, NULL) AS notes,
+        (oi.quantity * oi.price) AS subtotal
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ${orderId}
+        ORDER BY p.nombre ASC
+    `;
+    return orderItem;
+
+  } catch (error) {
+    console.error('Database Error:', error);
+    // Si falla porque no existe la columna notes, intentar sin ella
+    if (error instanceof Error && error.message?.includes('column oi.notes does not exist')) {
+      try {
+        const fallbackOrderItem = await sql<OrderItemRow[]>`
+          SELECT oi.id,
+            oi.product_id,
+            p.nombre AS product_name,
+            p.imagen AS product_image,
+            oi.quantity,
+            oi.price,
+            NULL AS notes,
+            (oi.quantity * oi.price) AS subtotal
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.id
+            WHERE oi.order_id = ${orderId}
+            ORDER BY p.nombre ASC
+        `;
+        return fallbackOrderItem;
+      } catch (fallbackError) {
+        throw new Error('Error: No se puedieron obtener los articulos del pedido');
+      }
+    }
+    throw new Error('Error: No se puedieron obtener los articulos del pedido');
+  }
+}
+
+
+// unificar las ordenes, items y totales
+
+export async function fetchOrderFull(orderId: string) {
+  const [order] = await sql`
+    SELECT o.id,
+      o.status,
+      o.total,
+      o.created_at,
+      c.name,
+      c.email
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    WHERE o.id = ${orderId}
+  `;
+
+  if(!order) return null;
+
+  const items = await sql`
+    SELECT oi.quantity,
+      oi.price,
+      p.nombre,
+      p.imagen,
+      FROM order_items oi
+      JOIN products p ON p.id = oi.product_id
+      WHERE oi.order_id = ${orderId}
+  `;
+
+  return {...order, items};
+}
+
+
+/*export async function getOrders() {
+
+}*/

@@ -7,6 +7,7 @@ export type User = {
   name: string;
   email: string;
   password: string;
+  role: 'admin' | 'client';
 };
 
 export type Customer = {
@@ -39,10 +40,123 @@ export type LatestInvoice = {
   amount: string;
 };
 
+export type Product = {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  imagen: string;
+  stock: number;
+
+  caracteristicas?: {label: string, value: string}[];
+}
+
+
+export type Categories = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+}
+
+
+export type ProductCategory = {
+  productId: string;
+  categoryId: string;
+}
+
+
+// Producto con categorias (ideal para UI)
+export type ProductWithCategories = Product & {
+  categories: Categories[];
+}
+
+
+//Producto para formulario (creacion/edicion)
+export type ProductForm = {
+  categoryIds: string[];
+}
+
+
+export type OrderStatus = 'pending'|'paid'|'cancelled'|'shipped';
+
+export type Order = {
+  id: string;
+  customer_id: string;
+  status: OrderStatus;
+  total: number;
+  created_at: string
+};
+
+
+
+export type OrderItem = {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+};
+
+
+export type CreateOrderItem = {
+  productId: string;
+  quantity: number;
+};
+
+
+// Orden para listado (en tabla admin) muestra estado de cada cliente
+export type OrderRow = {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  status: OrderStatus;
+  total: number;
+  created_at: string;
+  items_count: number;
+  invoice_id: string | null;
+};
+
+
+
+// Orden completa (detalle de compra)
+export type OrderDetail = {
+  id: string;
+  status: OrderStatus;
+  total: number;
+  created_at: string;
+  invoice_id: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer:{
+    id: string;
+    name: string;
+    email: string;
+  };
+   invoice?: {
+    id: string;
+    pdf_url: string | null;
+  } | null;
+};
+
+
+//Items de la orden
+export type OrderItemRow = {
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_image: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+};
+
+
 // The database returns a number for amount, but we later format it to a string with the formatCurrency function
 export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
   amount: number;
 };
+
 
 export type InvoicesTable = {
   id: string;
@@ -86,3 +200,6 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+
+
