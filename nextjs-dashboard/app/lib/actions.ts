@@ -1,21 +1,29 @@
 'use server';
 
-import { date, z } from 'zod';
+import { z } from 'zod';
 import sql from './db';
 import bcrypt from 'bcrypt'
 import { revalidatePath } from 'next/cache';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
-import { signIn } from '@/auth';
+import { signIn, auth } from '@/auth';
 import { OrderStatus } from './definitions';
 import type { State, ProductState, CategoryState, OrderState } from './types';
 import { supabase } from './supabaseClient';
+import { fetchOrderById, fetchOrderItem } from './data';
 import { generateInvoicePDF, uploadInvoicePDFToSupabase } from './invoices/pdfGenerator';
 import { Resend } from 'resend';
 import { checkRateLimit, resetRateLimit } from '@/app/lib/rateLimit';
 
 // Re-export types for use in client components
 export type { State, ProductState, CategoryState, OrderState };
+
+async function requireAdmin() {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'admin') {
+        throw new Error('No autorizado: Se requieren permisos de administrador.')
+    }
+}
 
 const FormSchema = z.object({
     id: z.string(),
