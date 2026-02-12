@@ -3,8 +3,6 @@
 import { useActionState, useState } from "react"
 import { createProduct, type ProductState } from "@/app/lib/actions";
 import type { Categories } from "@/app/lib/definitions";
-import { error } from "console";
-import { stat } from "fs";
 
 type ProductFormProps = {
     categories: Categories[];
@@ -122,7 +120,7 @@ export default function ProductForm({categories}: ProductFormProps) {
                                     id="stock"
                                     name="stock"
                                     type="number" 
-                                    placeholder="Ingrese la cantidad en stock..."
+                                    placeholder= '45,...50,...10...'
                                     className="w-full rounded-md border border-gray-200 text-sm placeholder: text-gray-500"
                                     aria-describedby="stock-error"
                                 />
@@ -158,13 +156,13 @@ export default function ProductForm({categories}: ProductFormProps) {
                     </div>
                 </div>
                 {/* Categoria */}
-                <div>
-                    <label className="mb-2 block text-sm font-meddium">
+                <div className="mb-6">
+                    <label className="mb-2 block text-sm font-medium">
                         Seleccione la/s categoria/s en las que se incluira el producto
                     </label>
                     <div className="">
                         {categories.map((category) => (
-                            <label key={category.id} className="flex items-center gap-2">
+                            <label key={category.id} className="flex items-center gap-2 cursor-pointer border p-2">
                                 <input 
                                     type="checkbox" 
                                     name="categoryIds"
@@ -192,14 +190,14 @@ export default function ProductForm({categories}: ProductFormProps) {
                                 <div  className="flex gap-2 mb-2">
                                     <input
                                         id="caracteristica"
-                                        placeholder="Clave"
+                                        placeholder="Nombre (Ej: Color)"
                                         value={caracter.key}
                                         onChange={(e) => updateCaracteristica(idx, "key", e.target.value)}
                                         className="border p-2 w-full text-sm border-gray-200 rounded-md placeholder: text-gray-500"
                                     />
                                     <input
                                         id="caracteristica"
-                                        placeholder="Valor"
+                                        placeholder="Valor (Ej: Rojo)"
                                         value={caracter.value}
                                         onChange={(e) => updateCaracteristica(idx, "value", e.target.value)}
                                         className="border p-2 w-full text-sm border-gray-200 rounded-md placeholder: text-gray-500"

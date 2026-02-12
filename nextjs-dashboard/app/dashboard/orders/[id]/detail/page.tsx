@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { fetchOrderById, fetchOrderItem } from "@/app/lib/data";
-//import OrderStatusForm from "@/app/ui/orders/orderStatus-form";
-//import GenerateInvoiceButton from "@/app/ui/orders/generate-invoices-button";
-import Image from "next/image";
+import { auth } from "@/auth";
 
 
-export default async function Page({params,}: {params: Promise<{id: string}>;}){
-
+export default async function Page({params}: {params: Promise<{id: string}>;}){
     const { id }= await params;
+    const session = await auth();
+
+    if(!session || session.user?.role !== 'client'){
+        redirect('/login');
+    }
 
     const order = await fetchOrderById(id);
     const items = await fetchOrderItem(id);
@@ -17,74 +19,86 @@ export default async function Page({params,}: {params: Promise<{id: string}>;}){
         notFound();
     }
 
+    /* Seguridad de los datos: se verifica quela orden pertenezca al usuario logueado
+    comparando el email de la sesion con el mail de la orden*/
+    if(order.customer_email !== session.user.email) {
+        redirect('/dashboard/orders');
+    }
+
     return(
-        <main className="space-y-6">
+        <main className="">
             {/* Header */}
+            <div className="">
+                <div>
+                    <Link href="/dashboard/orders" className="">
+                        ← Volver a mis ordenes
+                    </Link>
 
-            <div>
-                <Link href="/dashboard/orders" className="text-sm text-blue-600 hover:underline">
-                    ← Back to orders
-                </Link>
-
-                <h1 className="mt-2 text-2xl font-semibold">
-                    Orden #{order.id}
-                </h1>
+                    <h1 className="">
+                        Orden #{order.id.slice(0, 8)};
+                    </h1>
+                </div>
+                <div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                        order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                        {order.status}
+                    </span>
+                </div>
             </div>
+            
 
 
             {/* Order Info */}
-            <div className="rounded-md bg-gray-50 p-4 space-y-2">
-                <p><strong>Cliente:</strong>{order.customer.name}</p>
-                <p><strong>Email:</strong>{order.customer.email}</p>
-                <p><strong>Estado:</strong>{order.status}</p>
-                <p><strong>Total:</strong>{order.total / 100}</p>
-
-                {order.invoice_id && (
-                    <Link href={`/dashboard/invoices/${order.invoice_id}`} className="mt-2 inline-block text-blue-600 underline">
-                        Ver Factura
-                    </Link>
-                )}
-
-                {order.invoice?.pdf_url && (
-                    <a 
-                        href={order.invoice.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                    >
-                        Descargar factura (PDF)
-                    </a>
-                )}
+            <div className="">
+                <h2 className="">Informacion de la Compra</h2>
+                <div className="">
+                    <div>
+                        <p className="">Fecha</p>
+                        <p className="">
+                            {new Date(order.created_at).toLocaleDateString('es-ES', {
+                                year: 'numeric', month: 'long', day: 'numeric'
+                            })}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="">Email Registrado</p>
+                        <p className="">{order.customer_email || 'No registrado'}</p>
+                    </div>
+                    <div className="">
+                        <p className="">Total Pagado</p>
+                        <p className="">${(order.total / 100).toFixed(2)}</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="rounded-md bg-white border">
-                <table className="min-w-full divide-y">
-                    <thead className="bg-gray-50">
+            {/* Items table */}
+            <div className="">
+                <div className="">
+                    <h3 className="">Productos</h3>
+                </div>
+                <table className="">
+                    <thead className="">
                         <tr>
-                            <th className="px-3 py-2 text-left">Producto</th>
-                            <th className="px-3 py-2">Cantidad</th>
-                            <th className="px-3 py-2">Precio</th>
-                            <th className="px-3 py-2">Subtotal</th>
+                            <th className="">Producto</th>
+                            <th className="">Cant.</th>
+                            <th className="">Precio</th>
+                            <th className="">Subtotal</th>
                         </tr>
                     </thead>
 
-                    <tbody>
-                        {items.map((item) => (
+                    <tbody className="">
+                        {items.map((item: any) => (
                             <tr key={item.id}>
-                                <td className="px-3 py-2">{item.product_name}</td>
-                                <td className="px-3 py-2 text-center">{item.quantity}</td>
-                                <td className="px-3 py-2 text-right">{item.price / 100}</td>
-                                <td className="px-3 py-2 text-right">{item.subtotal / 100}</td>
+                                <td className="">{item.product_name}</td>
+                                <td className="">{item.quantity}</td>
+                                <td className="">${(item.price / 100).toFixed(2)}</td>
+                                <td className="">${(item.subtotal / 100).toFixed(2)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-
             </div>
-
-            
-
         </main>
     )
-
 }

@@ -3,36 +3,39 @@
 import { useActionState, useState } from "react"
 import { updateProduct, type ProductState } from "@/app/lib/actions";
 import Image from "next/image";
-import { error } from "console";
-import { string } from "zod";
+import type { Categories } from "@/app/lib/definitions";
 
 
-export default function EditProductForm({product} : {product: any}) {
+export default function EditProductForm({product, categories} : {product: any; categories: Categories[]}) {
 
     const initialState : ProductState = { message: null, errors: {} };
     const [state, formAction] = useActionState(updateProduct.bind(null, product.id), initialState);
 
     //const initialCaracteristicas = Object.entries(product.caracteristicas || {}).map(([key, value]) => ({key, value: String(value)}));
 
+    // 1. INICIALIZACION DE CATEGORIAS (Solo para saber cuales estan marcadas)
+    const selectCategoryIds = product.category_ids || [];
+
+    // 2. INICIALIZACION DE CARACTERISTICAS
+    /* Se mapea sobre 'product.caracteristicas', NO sobre category_ids.
+     Convertimos el formato {label, value} de la BD al formato {key, value} del form.*/
     const [caracteristicas, setCaracteristicas] = useState<{ key: string; value: string }[]>(
         (product.caracteristicas ?? []).map((c: any) => ({
-                key: c.label,
+                key: c.label, // se mapea 'label' a 'key
                 value: c.value,
             }))
         );
 
 
-
     const addCaracteristicas = () => {
-        setCaracteristicas([...caracteristicas, { key: '', value: ''}]);
+        setCaracteristicas([...caracteristicas, { key: '', value: '' }]);
     };
-
 
     const updateCaracteristica = (index: number, field: 'key' | 'value', value: string) => {
         const updateCaracteristica = [...caracteristicas];
         updateCaracteristica[index][field] = value;
         setCaracteristicas(updateCaracteristica);
-    }
+    };
 
 
     return (
@@ -145,6 +148,32 @@ export default function EditProductForm({product} : {product: any}) {
                         </div>
                     </div>
                 </div>
+                {/* Categorias Producto */}
+                <div className="mb-6">
+                    <label className="mb-2 block text-sm font-medium">
+                        Categorias (Seleccione las pertenecientes al producto)
+                    </label>
+                    <div className="grid grid-cols-2">
+                        {categories.map((category) => (
+                            <label key={category.id} className="">
+                                <input
+                                    type="checkbox"
+                                    name="categoryIds"
+                                    value={category.id}
+                                    // Comprueba si el ID esta en la lista de Ids del producto
+                                    defaultChecked={selectCategoryIds.includes(category.id)}
+                                    className="rounded border-gray-300"
+                                />
+                                <span className="text-sm">{category.name}</span>
+                            </label>
+                        ))}
+                    </div>
+                    {state.errors?.categoryIds?.map((error) => (
+                        <p key={error} className="mt-1 text-sm text-red-500">
+                            {error}
+                        </p>
+                    ))}
+                </div>
                 {/*Imagen del Producto*/}
                 <div className="mb-4">
                     <label className="mb-2 block text-sm font-medium">
@@ -166,21 +195,21 @@ export default function EditProductForm({product} : {product: any}) {
                 <div className="mb-4">
                     <div className="relative">
                         <label htmlFor="caracteristica" className="mb-2 block text-sm font-medium">
-                            Detalle las Caracteristicas del producto
+                            Detalle las Caracteristicas del producto (Ej: Color, Marca, Peso)
                         </label>
                         {caracteristicas.map((caracter, idx) => (
                             <div key={idx}>
                                 <div  className="flex gap-2 mb-2">
                                     <input
                                         id="caracteristica"
-                                        placeholder="Clave"
+                                        placeholder="Nombre (Ej: Color)"
                                         value={caracter.key}
                                         onChange={(e) => updateCaracteristica(idx, "key", e.target.value)}
                                         className="border p-2 w-full text-sm border-gray-200 rounded-md placeholder: text-gray-500"
                                     />
                                     <input
                                         id="caracteristica"
-                                        placeholder="Valor"
+                                        placeholder="Valor (Ej: Rojo)"
                                         value={caracter.value}
                                         onChange={(e) => updateCaracteristica(idx, "value", e.target.value)}
                                         className="border p-2 w-full text-sm border-gray-200 rounded-md placeholder: text-gray-500"

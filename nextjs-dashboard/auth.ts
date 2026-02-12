@@ -6,53 +6,56 @@ import { User } from "./app/lib/definitions";
 import bcrypt from 'bcrypt'
 import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL_NON_POOLING!, {ssl: 'require'});
+// Configurar AUTH_URL dinámicamente basado en NODE_ENV
+const AUTH_URL = process.env.NODE_ENV === 'production'
+  ? process.env.AUTH_URL_PRODUCTION
+  : process.env.AUTH_URL_DEVELOPMENT || 'http://localhost:3000/api/auth';
 
-async function getUser(email: string): Promise<User | undefined> {
-    try {
-        console.log('🔍 Buscando usuario con email:', email);
-        const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
-        console.log('✅ Usuario encontrado:', user[0] ? { id: user[0].id, name: user[0].name, email: user[0].email } : 'NO ENCONTRADO');
-        return user[0];
-    } catch (error) {
-        console.error('❌ Error al buscar usuario:', error);
-        throw new Error('Failed to fetch user'); 
-    }
+// Validar que AUTH_URL esté configurada
+if (!process.env.NODE_ENV === 'production' && !AUTH_URL) {
+  console.warn('AUTH_URL not configured. Using default: http://localhost:3000/api/auth');
 }
 
 
+const sql = postgres(process.env.POSTGRES_URL_NON_POOLING!, {ssl: 'require'});
 
-export const {auth, signIn, signOut} = NextAuth({
-    ...authConfig,
-    providers: [
-        Credentials({
-            async authorize(credentials){
-                const parsedCredentials = z.object({ email: z.string().email(), password: z.string().min(6) }).safeParse(credentials);
+async function getUser(email: string): Promise<User | undefined> {
+  try {
+    const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
+    return user[0];
+  } catch (error) {
+    console.error('Database error in getUser');
+    throw new Error('Failed to fetch user'); 
+  }
+}
 
-                if(parsedCredentials.success){
-                    const {email, password} = parsedCredentials.data;
-                    console.log('🔐 Intento de login con:', email);
-                    const user = await getUser(email)
+// AGREGA 'handlers' A LA DESESTRUCTURACIÓN
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  basePath: '/api/auth',
+  trustHost: true,
+  providers: [
+    Credentials({
+      async authorize(credentials){
+        const parsedCredentials = z.object({ email: z.string().email(), password: z.string().min(6) }).safeParse(credentials);
 
-                    if(!user){
-                        console.log('❌ Usuario no existe:', email);
-                        return null;
-                    }
-                    
-                    console.log('🔑 Comparando contraseñas...');
-                    const passwordMatch = await bcrypt.compare(password, user.password);
-                    console.log('🔐 Contraseña coincide:', passwordMatch);
+        if(parsedCredentials.success){
+            const {email, password} = parsedCredentials.data;
+            const user = await getUser(email)
 
-                    if(passwordMatch){
-                        console.log('✅ Login exitoso para:', email);
-                        return user;
-                    }
-                    console.log('❌ Contraseña incorrecta para:', email);
-                }
-                console.log('❌ Credenciales inválidas o formato incorrecto');
+            if(!user) {
                 return null;
-            },
-        })],
+            }
+                
+            const passwordMatch = await bcrypt.compare(password, user.password);
+
+            if(passwordMatch){
+                return user;
+            }
+        }
+        return null;
+      },
+    })],
     callbacks: {
         async jwt({ token, user }) {
             if (user) {

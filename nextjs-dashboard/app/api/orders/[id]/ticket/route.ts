@@ -19,7 +19,7 @@ export async function GET(
     }
 
     // Generar HTML del ticket
-    const ticketHTML = await generateTicketHTML(id, 'StockPablo');
+    const ticketHTML = await generateTicketHTML(id, 'ROMA Multirubros');
 
     // Retornar como HTML que puede imprimirse como PDF
     return new NextResponse(ticketHTML, {

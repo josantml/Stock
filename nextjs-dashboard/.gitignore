@@ -34,3 +34,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# documentation / local notes
+*.md
+DEBUG_*
+TEST_*
+RESPUESTA_FINAL.*
+RESUMEN_FINAL.*
+SECURITY_*.md
+
+# local tools
+tools/

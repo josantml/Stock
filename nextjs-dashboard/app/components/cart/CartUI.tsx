@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import CartToggle from './CartToggle';
 import CartSidebar from './CartSidebar';
 
 export default function CartUI(){
     const [open, setOpen] = useState(false);
+    const pathname = usePathname();
+
+    // Solo mostrar el carrito en rutas de tienda/productos
+    const shouldShowCart = pathname.startsWith('/shop') || pathname.startsWith('/cart');
+
+    if (!shouldShowCart) {
+        return null;
+    }
 
     return (
         <>

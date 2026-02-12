@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchOrderById, fetchOrderItem } from '@/app/lib/data';
 import DeleteItemButton from './DeleteItemButton';
+import UpdateOrderEmailForm from '@/app/ui/updateOrderEmailForm';
+import { TicketSenderButton } from '@/app/components/ticket/ticketSender';
 
 export const metadata = {
   title: 'Detalle de Orden',
@@ -21,6 +23,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     redirect('/dashboard');
   }
 
+ 
+
   try {
     const order = await fetchOrderById(id);
     const orderItems = await fetchOrderItem(id);
@@ -28,6 +32,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     if (!order) {
       redirect('/dashboard/admin/orders');
     }
+
+    /*if(!order.customer_email){
+      throw new Error('La orden no tiene un email asociado');
+    }*/
 
     return (
       <div className="space-y-6">
@@ -95,10 +103,13 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {order.customer_email || 'N/A'}
-                  </p>
+                  <h2 className="text-gray-600">Email</h2>
+                  
+                    {order.customer_email ? (<p>{order.customer_email}</p>) : (<p className='text-gray-400 italic'>El cliente no proporciono mail</p>)} 
+                    <UpdateOrderEmailForm orderId={order.id} initialEmail={order.customer_email}/>
+                </div>
+                <div>
+                  <TicketSenderButton orderId={order.id} />
                 </div>
               </div>
             </div>

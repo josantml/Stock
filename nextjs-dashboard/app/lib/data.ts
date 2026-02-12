@@ -14,7 +14,7 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 import { ProductWithCategories } from './definitions';
-import { string } from 'zod';
+
 
 export async function fetchRevenue() {
   try {
@@ -190,6 +190,9 @@ export async function fetchInvoicesPages(query: string) {
 
 const ITEMS_LIMIT_PAGE = 4;
 export async function fetchFilteredProducts(query : string, currentPage: number){
+
+  console.log('BUSCANDO:', query);
+
   const offset = (currentPage - 1) * ITEMS_LIMIT_PAGE;
   try {
     const productsFilter = await sql`
@@ -202,6 +205,9 @@ export async function fetchFilteredProducts(query : string, currentPage: number)
       ORDER BY nombre ASC
       LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
     `;
+
+    console.log('RESULTADOS:', productsFilter.length);
+
     return productsFilter
   } catch (error) {
     console.error('Database Error:', error);
@@ -267,23 +273,36 @@ function normalizeCaracteristicas(caracteristicas: any){
     return [];
 }
 
-export async function fetchProductById(id: string){
+
+export async function fetchProductById(id: string) {
   try {
-      const data = await sql<Product[]>`
-        SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
-        FROM products
-        WHERE products.id = ${id}
-        `;
-        const product = data[0];
+    const data = await sql`
+      SELECT 
+        p.id,
+        p.nombre,
+        p.descripcion,
+        p.precio,
+        p.imagen,
+        p.stock,
+        p.caracteristicas,
+        -- CORRECCIÓN: Usamos uuid[] en lugar de text[] para coincidir con el tipo de la columna
+        COALESCE(ARRAY_AGG(pc.category_id) FILTER (WHERE pc.category_id IS NOT NULL), ARRAY[]::uuid[]) as category_ids
+      FROM products p
+      LEFT JOIN product_categories pc ON p.id = pc.product_id
+      WHERE p.id = ${id}
+      GROUP BY p.id
+    `;
+    const product = data[0];
 
-        if(!product){
-          return null;
-        }
+    if (!product) {
+      return null;
+    }
 
-        return {
-          ...product,
-          caracteristicas: normalizeCaracteristicas(product.caracteristicas),
-        };
+    return {
+      ...product,
+      caracteristicas: normalizeCaracteristicas(product.caracteristicas),
+      category_ids: product.category_ids || [],
+    };
   } catch (error) {
     console.error('Database Error:', error)
     throw new Error('Failed to fetch product.');
@@ -421,23 +440,45 @@ export async function fetchProductByCategorySlug(slug: string): Promise<Product[
 
 //Obtener los pedidos de compra en formato tabla
 
-export async function fetchOrders(){
+export async function fetchOrders(customerEmail?: string){
   try {
-    const dataOrder = await sql<OrderRow[]>`
-      SELECT o.id,
-        o.status,
-        o.total,
-        o.created_at,
-        o.invoice_id,
-        o.customer_name,
-        o.customer_email,
-        COUNT (oi.id) AS items_count
-      FROM orders o
-      LEFT JOIN order_items oi ON oi.order_id = o.id
-      GROUP BY o.id
-      ORDER BY o.created_at DESC
-    `;
-    return dataOrder;
+    let query;
+    if(customerEmail){
+      //CASO CLIENTE: filtra directamente en SQL
+      query = sql<OrderRow[]>`
+        SELECT o.id,
+          o.status,
+          o.total,
+          o.created_at,
+          o.invoice_id,
+          o.customer_name,
+          o.customer_email,
+          COUNT (oi.id) AS items_count
+        FROM orders o 
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.customer_email = ${customerEmail}
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+      `;
+    }else{
+      // CASO ADMIN: se trae todo (como estaba)
+      query = await sql<OrderRow[]>`
+        SELECT o.id,
+          o.status,
+          o.total,
+          o.created_at,
+          o.invoice_id,
+          o.customer_name,
+          o.customer_email,
+          COUNT (oi.id) AS items_count
+        FROM orders o
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+      `;
+    }
+    
+    return query;
 
   } catch (error) {
     console.error('Database Error:', error);
@@ -557,6 +598,3 @@ export async function fetchOrderFull(orderId: string) {
 }
 
 
-/*export async function getOrders() {
-
-}*/

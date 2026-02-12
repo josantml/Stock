@@ -46,7 +46,7 @@ export default async function Page() {
                  <Suspense fallback={<CardSkeleton />}>
                     <CardWrapper/>
                 </Suspense>
-                
+                <p>Holaaaa</p>
             </div>
         </main>
         

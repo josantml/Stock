@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import Link from 'next/link';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 export default async function Page() {
   const session = await auth();
@@ -13,7 +14,7 @@ export default async function Page() {
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="text-3xl font-bold text-blue-600">
-            StockPablo
+            ROMA Multirubros
           </Link>
           <nav className="flex gap-6 items-center">
             <Link href="/shop" className="text-gray-600 hover:text-gray-800 font-medium">
@@ -21,6 +22,12 @@ export default async function Page() {
             </Link>
             {!session ? (
               <>
+                <Link 
+                  href="/register"
+                  className='text-gray-600 hover:text-blue-600 font-medium'
+                >
+                  Registrarse
+                </Link>
                 <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
                   Ingresar
                 </Link>
@@ -44,9 +51,21 @@ export default async function Page() {
 
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-4 py-20 text-center">
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/ROMA Mult. original.jpeg"
+            alt="Roma Multirubros"
+            width={300}
+            height={300}
+            priority
+            className="rounded-full"
+          />
+        </div>
+
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          Bienvenido a StockPablo
+          ROMA Multirubros
         </h1>
+
         <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
           Tu tienda online de productos de calidad. Explora nuestro catálogo, agrega productos a tu carrito y realiza tu compra de forma segura.
         </p>
@@ -57,13 +76,23 @@ export default async function Page() {
           >
             Ver Tienda <ArrowRightIcon className="w-5" />
           </Link>
+
           {!session && (
-            <Link
-              href="/login"
-              className="flex items-center gap-2 bg-gray-200 text-gray-800 px-8 py-4 rounded-lg font-semibold hover:bg-gray-300 transition"
-            >
-              Ingresar Cuenta
-            </Link>
+            <div className='flex gap-4'>
+              <Link 
+                href="/register"
+                className='flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-green-700 transition'
+              >
+                Crear Cuenta
+              </Link>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 bg-gray-200 text-gray-800 px-8 py-4 rounded-lg font-semibold hover:bg-gray-300 transition"
+              >
+                Ingresar Cuenta
+              </Link>
+            </div>
+            
           )}
         </div>
       </section>
@@ -90,7 +119,7 @@ export default async function Page() {
                 Compra Segura
               </h3>
               <p className="text-gray-600">
-                Tu información está protegida con los más altos estándares de seguridad.
+                Tu información personal está protegida bajo estrictos estándares de seguridad.
               </p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition">
@@ -99,7 +128,7 @@ export default async function Page() {
                 Entrega Rápida
               </h3>
               <p className="text-gray-600">
-                Procesa tus órdenes rápidamente y estará listo para recoger.
+                Procesa tus órdenes rápidamente y estará listo para entregar.
               </p>
             </div>
           </div>
@@ -128,7 +157,7 @@ export default async function Page() {
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © 2026 StockPablo. Todos los derechos reservados.
+            © 2026 Roma Multirubros. Todos los derechos reservados.
           </p>
         </div>
       </footer>

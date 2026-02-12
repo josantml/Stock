@@ -96,7 +96,7 @@ export default async function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link
-                        href={`/dashboard/orders/${order.id}`}
+                        href={`/dashboard/admin/orders/${order.id}`}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
                         Ver Detalle

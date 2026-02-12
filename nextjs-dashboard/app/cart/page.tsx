@@ -4,6 +4,7 @@ import { useCart } from "../components/cart/CartProvider";
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCartIcon } from "@heroicons/react/24/outline";
+import ShopHeader from "../ui/dashboard/shopHeader";
 
 export default function CartPage() {
     return <CartContent />;
@@ -12,10 +13,12 @@ export default function CartPage() {
 function CartContent() {
     const { items, total, removeItem } = useCart();
 
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b">
+            <ShopHeader />
+            {/*<div className="bg-white shadow-sm border-b">
                 <div className="max-w-6xl mx-auto px-4 py-6">
                     <div className="flex justify-between items-center mb-4">
                         <Link href="/" className="text-2xl font-bold text-blue-600">
@@ -32,7 +35,7 @@ function CartContent() {
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900">Mi Carrito</h1>
                 </div>
-            </div>
+            </div>*/}
 
             {/* Main Content */}
             <div className="max-w-6xl mx-auto px-4 py-8">

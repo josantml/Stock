@@ -3,7 +3,7 @@ import { fetchProducts, fetchFilteredProducts, fetchCategories, fetchProductByCa
 import Link from "next/link";
 import Search from "@/app/ui/search";
 import { CreateProduct } from "@/app/ui/invoices/buttons";
-import CategoriesFilter from "@/app/ui/products/categoriesFilter";
+import DashboardCategoriesHeader from "@/app/ui/products/DashboardCategoriesHeader";
 import { auth } from "@/auth";
 
 
@@ -49,7 +49,7 @@ export default async function Page({ searchParams }: {searchParams: Promise<{que
 
         {/* Sidebar Categorias */}
         <div className="md:col-span-1">
-            <CategoriesFilter categories={categories} />
+            <DashboardCategoriesHeader categories={categories} />
         </div>
 
 

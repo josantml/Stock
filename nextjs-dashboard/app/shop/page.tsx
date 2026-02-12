@@ -1,4 +1,4 @@
-'use client';
+/*'use client';
 
 import Link from 'next/link';
 import { products } from '@/app/lib/placeholder-data';
@@ -35,9 +35,9 @@ export default function ShopPage() {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">*/
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      {/*<div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold text-blue-600">
@@ -56,7 +56,7 @@ export default function ShopPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      {/*<div className="max-w-6xl mx-auto px-4 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Nuestros Productos</h1>
           <p className="text-gray-600">
@@ -65,7 +65,7 @@ export default function ShopPage() {
         </div>
 
         {/* Filtro de Categorías */}
-        <div className="mb-8 bg-white p-4 rounded-lg shadow-sm">
+       {/* <div className="mb-8 bg-white p-4 rounded-lg shadow-sm">
           <h3 className="font-semibold text-gray-900 mb-4">Filtrar por Categoría</h3>
           <div className="flex flex-wrap gap-3">
             <button
@@ -100,7 +100,7 @@ export default function ShopPage() {
         </div>
 
         {/* Productos Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/*<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -144,7 +144,7 @@ function ProductCard({ product }: { product: any }) {
     <>
       <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
         {/* Imagen */}
-        <div className="aspect-square bg-gray-200 flex items-center justify-center overflow-hidden">
+        {/*<div className="aspect-square bg-gray-200 flex items-center justify-center overflow-hidden">
           <Image
             src={product.imagen}
             alt={product.nombre}
@@ -158,7 +158,7 @@ function ProductCard({ product }: { product: any }) {
         </div>
 
         {/* Contenido */}
-        <div className="p-4">
+        {/*<div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {product.nombre}
           </h3>
@@ -167,7 +167,7 @@ function ProductCard({ product }: { product: any }) {
           </p>
 
           {/* Precio y Stock */}
-          <div className="flex justify-between items-center mb-4">
+          {/*<div className="flex justify-between items-center mb-4">
             <span className="text-2xl font-bold text-blue-600">
               ${product.precio}
             </span>
@@ -212,7 +212,7 @@ function ProductCard({ product }: { product: any }) {
           )*/}
 
           {/* Botones */}
-          <div className="flex gap-2">
+         {/* <div className="flex gap-2">
             <Link
               href={`/shop/${product.id}`}
               className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded font-medium text-center hover:bg-gray-300 transition"
@@ -237,6 +237,126 @@ function ProductCard({ product }: { product: any }) {
           onClose={() => setShowToast(false)}
         />
       )}
+    </>
+  );
+}*/}
+
+
+import Link from 'next/link';
+import ProductCard from '../ui/products/ProductCard';
+import Search from '@/app/ui/search';
+import CategoriesFilter from '@/app/ui/products/categoriesFilter';
+import ShopHeader from '../ui/dashboard/shopHeader';
+import {
+  fetchProducts,
+  fetchFilteredProducts,
+  fetchCategories,
+  fetchProductByCategorySlug,
+} from '@/app/lib/data';
+import { auth } from '@/auth';
+
+
+export const dynamic = 'force-dynamic';
+
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    query?: string;
+    category?: string;
+    page?: string;
+  }>;
+}) {
+
+  const params = await searchParams;
+  const session = await auth();
+
+  const query = params.query ?? '';
+  const category = params.category;
+  const page = Number(params.page ?? '1');
+
+  console.log('QUERY:', query)
+
+  const categories = await fetchCategories();
+
+  let products;
+  if (category) {
+    products = await fetchProductByCategorySlug(category);
+  } else if (query) {
+    products = await fetchFilteredProducts(query, page);
+  } else {
+    products = await fetchProducts();
+  }
+
+  const isAdmin = session?.user?.role === 'admin';
+
+  console.log('QUERY:', query);
+
+  return (
+    <>
+      {/* Header */}
+      <ShopHeader/>
+      {/*<div className="bg-white shadow-sm border-b">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="text-2xl font-bold text-blue-600">
+              ROMA Multirubro
+            </Link>
+            <div className="flex gap-4 items-center">
+              <Link href="/cart" className="text-blue-600 hover:text-blue-800 font-medium">
+                🛒 Ver Carrito
+              </Link>
+              {!session ? (
+                // Si no hay sesion muestra el enlace Ingresar
+                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                Ingresar
+              </Link>) : (
+                // Si hay sesion, mostrar "Mi Cuenta" o  el nombre
+                <Link href={isAdmin ? '/dashboard' : '/dashboard/orders'} className=''>
+                  {isAdmin ? 'Admin Panel' : `Hola, ${session.user.name}`}
+                </Link>
+              )
+              }
+              
+            </div>
+          </div>
+        </div>
+      </div>*/}
+
+    
+        
+    {/* Main Content */}
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Nuestros Productos</h1>
+          <p className="text-gray-600">
+            Explora nuestro catálogo de productos. Agrega los que desees a tu carrito y procede al checkout.
+          </p>
+        </div>
+
+      {/*Search y Nav*/}
+      <div className="flex gap-4 mb-6">
+        <Search placeholder="Buscar productos..." />
+      </div>
+
+      <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
+        
+          <aside className="md:col-span-1">
+            <CategoriesFilter categories={categories} />
+          </aside>
+        
+
+        {/* Productos Grid */}
+        <section className='md:col-span-4'>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map(product => (
+              <ProductCard key={product.id} product={product}/>
+            ))}
+          </div>
+        </section>
+      </div>
+      
+    </div>
     </>
   );
 }

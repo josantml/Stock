@@ -7,10 +7,7 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
   const session = await auth();
-  
-  if (!session) {
-    return NextResponse.json(null, { status: 401 });
-  }
 
-  return NextResponse.json({ user: session.user });
+  // Devolver la sesión completa (o null) con 200 para que `next-auth/react` la consuma correctamente
+  return NextResponse.json(session ?? null);
 }

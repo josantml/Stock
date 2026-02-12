@@ -2,6 +2,7 @@ import '@/app/ui/global.css';
 import { inter } from '@/app/ui/fonts';
 import { Metadata } from 'next';
 import { CartProvider } from './components/cart/CartProvider';
+import { SessionProvider } from 'next-auth/react';
 import CartUI from './components/cart/CartUI';
 
 export const metadata: Metadata = {
@@ -20,12 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="es">
         <body className={`${inter.className} antialiased`}>
-          <CartProvider>
-            {children}
-            <CartUI />
-          </CartProvider>
+          <SessionProvider>
+            <CartProvider>
+              {children}
+              <CartUI />
+            </CartProvider>
+          </SessionProvider>
         </body>
     </html>
   );

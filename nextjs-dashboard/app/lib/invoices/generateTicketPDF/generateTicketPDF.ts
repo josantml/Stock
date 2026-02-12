@@ -11,13 +11,13 @@ interface OrderData {
 interface OrderItem {
   product_name: string;
   quantity: number;
-  price: number;
+  price: number; // Este es el precio unitario
   subtotal: number;
 }
 
 export async function generateTicketHTML(
   orderId: string,
-  storeName: string = 'StockPablo'
+  storeName: string = 'ROMA Multirubros'
 ) {
   try {
     // Obtener datos de la orden
@@ -83,27 +83,26 @@ export async function generateTicketHTML(
         
         body {
             font-family: 'Courier New', monospace;
-            width: 80mm;
-            font-size: 10px;
+            font-size: 9px; /* Reduje ligeramente el tamaño para que todo quepa */
             line-height: 1.4;
         }
         
         .ticket {
             width: 100%;
-            padding: 8px;
+            padding: 5px; /* Padding ajustado */
         }
         
         .header {
             text-align: center;
             border-bottom: 2px dashed #000;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
         }
         
         .store-name {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         
         .ticket-title {
@@ -118,13 +117,18 @@ export async function generateTicketHTML(
         
         .ticket-datetime {
             font-size: 9px;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
+        }
+
+        .ticket-warning {
+            font-size: 9px;
+            margin-bottom: 9px;
         }
         
         .client-section {
             border-bottom: 1px dashed #000;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
         }
         
         .section-title {
@@ -145,7 +149,7 @@ export async function generateTicketHTML(
         
         .items-section {
             border-bottom: 1px dashed #000;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         
         .items-header {
@@ -153,7 +157,7 @@ export async function generateTicketHTML(
             justify-content: space-between;
             font-weight: bold;
             font-size: 9px;
-            padding-bottom: 4px;
+            padding-bottom: 2px;
             border-bottom: 1px solid #000;
             margin-bottom: 4px;
         }
@@ -161,8 +165,8 @@ export async function generateTicketHTML(
         .item {
             display: flex;
             justify-content: space-between;
-            font-size: 8px;
-            padding: 2px 0;
+            font-size: 9px;
+            padding: 1px 0;
             border-bottom: 1px dotted #ccc;
         }
         
@@ -170,35 +174,43 @@ export async function generateTicketHTML(
             flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding-right: 2px; /* Espacio pequeño a la derecha del nombre */
+            white-space: nowrap;
         }
         
-        .item-qty {
-            width: 30px;
+        .item-price {
+            width: 50px; /* Ancho fijo para Precio Unitario */
             text-align: right;
-            margin: 0 4px;
+            margin-right: 4px;
+            font-weight: bold;
+        }
+
+        .item-qty {
+            width: 30px; /* Ancho fijo para Cantidad */
+            text-align: right;
         }
         
         .item-total {
-            width: 40px;
+            width: 40px; /* Ancho fijo para Subtotal */
             text-align: right;
         }
         
         .total-section {
             text-align: right;
-            padding: 8px 0;
+            padding: 5px 0;
             border-bottom: 2px dashed #000;
             border-top: 2px dashed #000;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         
         .total-label {
             font-weight: bold;
-            font-size: 11px;
-            margin-bottom: 4px;
+            font-size: 10px;
+            margin-bottom: 2px;
         }
         
         .total-amount {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #000;
         }
@@ -206,11 +218,11 @@ export async function generateTicketHTML(
         .footer {
             text-align: center;
             font-size: 9px;
-            padding-top: 8px;
+            padding-top: 5px;
         }
         
         .thank-you {
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-weight: bold;
         }
         
@@ -224,7 +236,7 @@ export async function generateTicketHTML(
                 padding: 0;
             }
             .ticket {
-                padding: 4px;
+                padding: 0;
             }
         }
     </style>
@@ -233,9 +245,10 @@ export async function generateTicketHTML(
     <div class="ticket" id="ticket">
         <div class="header">
             <div class="store-name">${storeName}</div>
-            <div class="ticket-title">TICKET DE VENTA</div>
-            <div class="ticket-id">ID: ${orderId.slice(0, 8)}</div>
+            <div class="ticket-title">PRESUPUESTO</div>
+            <div class="ticket-id">ID Orden: ${orderId.slice(0, 8)}</div>
             <div class="ticket-datetime">${fecha} ${hora}</div>
+            <div class="ticket-warning">"Presupuesto no valido como factura"</div>
         </div>
         
         <div class="client-section">
@@ -246,7 +259,8 @@ export async function generateTicketHTML(
         
         <div class="items-section">
             <div class="items-header">
-                <div style="flex: 1;">Descripción</div>
+                <div style="flex:1;">Descripción</div>
+                <div class="item-price">Precio U.</div>
                 <div class="item-qty">Cant.</div>
                 <div class="item-total">Total</div>
             </div>
@@ -256,6 +270,7 @@ export async function generateTicketHTML(
                 (item) => `
                 <div class="item">
                     <div class="item-name">${item.product_name.substring(0, 20)}</div>
+                    <div class="item-price">$${(item.price / 100).toFixed(2)}</div>
                     <div class="item-qty">${item.quantity}</div>
                     <div class="item-total">$${(item.subtotal / 100).toFixed(2)}</div>
                 </div>

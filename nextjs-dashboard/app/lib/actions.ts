@@ -2,16 +2,17 @@
 
 import { date, z } from 'zod';
 import sql from './db';
+import bcrypt from 'bcrypt'
 import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 import { signIn } from '@/auth';
-import { invoices } from './placeholder-data';
 import { OrderStatus } from './definitions';
 import type { State, ProductState, CategoryState, OrderState } from './types';
 import { supabase } from './supabaseClient';
 import { generateInvoicePDF, uploadInvoicePDFToSupabase } from './invoices/pdfGenerator';
-import { requireAdmin } from './auth-utils';
+import { Resend } from 'resend';
+import { checkRateLimit, resetRateLimit } from '@/app/lib/rateLimit';
 
 // Re-export types for use in client components
 export type { State, ProductState, CategoryState, OrderState };
@@ -22,9 +23,7 @@ const FormSchema = z.object({
     amount: z.coerce.number().gt(0, {message: 'Please enter a valid amount greater than $0'}),
     status: z.enum(['paid', 'pending'], {invalid_type_error: 'Status is required. Please select  status'}),
     date: z.string(),
-})
-
-
+});
 
 
 const CreateInvoice = FormSchema.omit({id: true, date:true});
@@ -207,9 +206,6 @@ export async function updateInvoice(
 
 
 
-
-
-
 export async function deleteInvoice(id: string) {
     
     await sql`DELETE FROM invoices WHERE id = ${id}`;
@@ -232,27 +228,134 @@ export async function deleteInvoice(id: string) {
 
 
 
+// Definimos el esquema de validación para el registro
+const RegisterSchema = z.object({
+  name: z.string().min(4, 'El nombre debe tener al menos 4 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
+    .regex(/[0-9]/, 'Debe contener al menos un número')
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Debe contener al menos un carácter especial (!@#$%^&*, etc)'),
+});
 
+export type RegisterState = {
+  errors?: {
+    name?: string[];
+    email?: string[];
+    password?: string[];
+  };
+  message?: string | null;
+};
+
+export async function registerUser(prevState: RegisterState, formData: FormData): Promise<RegisterState> {
+  // Validacion de los datos con Zod
+  const validatedFields = RegisterSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Error en la validación. Por favor revise los campos.',
+    };
+  }
+
+  const { name, email, password } = validatedFields.data;
+
+  // Verifica si el email ya existe
+  try {
+    const existingUser = await sql`SELECT id FROM users WHERE email = ${email}`;
+    if (existingUser.length > 0) {
+      return {
+        message: 'El email ya está registrado.',
+      };
+    }
+  } catch (error) {
+    return { message: 'Error al verificar el usuario en la base de datos.' };
+  }
+
+  // Hash de la contraseña
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Inserta el nuevo usuario
+  const userId = crypto.randomUUID(); // Generar ID para la tabla users
+
+  try {
+    await sql.begin(async (sql) => {
+      // Crear en la tabla 'users' ( para Autenticación)
+      await sql`
+        INSERT INTO users (id, name, email, password, role)
+        VALUES (${userId}, ${name}, ${email}, ${hashedPassword}, 'client')
+      `;
+
+      // Crear en la tabla 'customers' (Para el sistema de facturas/compras)
+      // Esto vincula la autenticación con los datos comerciales.
+      const customerId = crypto.randomUUID(); 
+      await sql`
+        INSERT INTO customers (id, name, email, image_url)
+        VALUES (${customerId}, ${name}, ${email}, '/users/default.png')
+      `;
+      
+       
+      /* para saber qué "customer" pertenece a qué "user",
+       se podria agregar una columna customer_id en la tabla users, o user_id en customers.*/
+      
+    });
+  } catch (error) {
+    console.error('Error al crear usuario:', error);
+    return { message: 'Error de base de datos: No se pudo crear el usuario.' };
+  }
+
+  
+  revalidatePath('/login');
+  // Redirigir al login para que ingresen sus nuevas credenciales
+  redirect('/login?registered=true');
+}
 
 
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
     try {
+        const email = formData.get('email') as string;
+        
+        // Rate limiting: máx 5 intentos por 15 minutos
+        const { allowed, remaining, resetTime } = checkRateLimit(email, 5, 15 * 60 * 1000);
+        
+        if (!allowed) {
+            const resetDate = new Date(resetTime);
+            return `Demasiados intentos de login. Intenta de nuevo en ${resetDate.toLocaleTimeString()}`;
+        }
+        
         await signIn('credentials', formData);
+
+        // Si el login fue exitoso, resetear el contador
+        resetRateLimit(email);
+
+        // Después del signin, obtener la sesión y redirigir según el rol (server-side)
+        const { auth } = await import('@/auth');
+        const session = await auth();
+
+        if (session?.user?.role === 'admin') {
+            redirect('/dashboard');
+        }
+        redirect('/shop');
     } catch (error) {
         if(error instanceof AuthError){
             switch(error.type){
                 case 'CredentialsSignin':
-                    return 'Invalid Credentials';
+                    return 'Credenciales inválidas';
                 default:
-                    return 'Something went wrong';
+                    return 'Error al procesar la solicitud';
             }
         }
         throw error;
     }
 }
-
-
 
 
 
@@ -311,7 +414,7 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         }
     }
 
-    const {nombre, descripcion, precio, stock, caracteristicas, imagen} = validateProduct.data;
+    const { nombre, descripcion, precio, stock, caracteristicas, imagen, categoryIds } = validateProduct.data;
 
     console.log('IMAGEN:', imagen);
     console.log('ES FILE:', imagen instanceof File);
@@ -323,7 +426,7 @@ export async function createProduct(prevState: ProductState, formData: FormData)
     const fileExt = imagenFile.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
-    const {error: uploadError} = await supabase.storage.from("products").upload(fileName, imagenFile, { contentType: imagenFile.type});
+    const { error: uploadError } = await supabase.storage.from("products").upload(fileName, imagenFile, { contentType: imagenFile.type});
 
     if(uploadError){
         console.error('Supabase Storage Error:', uploadError);
@@ -337,26 +440,33 @@ export async function createProduct(prevState: ProductState, formData: FormData)
     const productId = crypto.randomUUID();
 
     try {
-        await sql`
-        INSERT INTO products (id, nombre, descripcion, precio, stock, imagen, caracteristicas)
-        VALUES (${productId}, ${nombre}, ${descripcion}, ${precio}, ${stock}, ${publicUrlData.publicUrl}, ${JSON.stringify(caracteristicas)})
-        `;
 
-        // Insertar las categorias asociadas
-
-        for (const categoryId of validateProduct.data.categoryIds) {
+        await sql.begin(async (sql) => {
             await sql`
-            INSERT INTO product_categories (product_id, category_id)
-            VALUES (${productId}, ${categoryId})
+            INSERT INTO products (id, nombre, descripcion, precio, stock, imagen, caracteristicas)
+            VALUES (${productId}, ${nombre}, ${descripcion}, ${precio}, ${stock}, ${publicUrlData.publicUrl}, ${JSON.stringify(caracteristicas)})
             `;
-        }
 
+            // Insertar las categorias asociadas
+
+            if(categoryIds && categoryIds.length > 0) {
+                for (const categoryId of categoryIds) {
+                    await sql`
+                    INSERT INTO product_categories (product_id, category_id)
+                    VALUES (${productId}, ${categoryId})
+                    `;
+                }
+            }
+        })
+      
+        
     } catch (error) {
         console.error('ERROR EN SERVER ACTION:', error);
         return { message: "Error al guardar en la base" };
     }
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/shop');
     redirect('/dashboard/products');
 
 }
@@ -364,72 +474,99 @@ export async function createProduct(prevState: ProductState, formData: FormData)
 
 
 
+export async function updateProduct(id: string, prevState: ProductState, formData: FormData) {
+    // 1. Verificar que el usuario sea admin
+    try {
+        await requireAdmin();
+    } catch (error) {
+        return {
+            message: error instanceof Error ? error.message : 'Forbidden'
+        };
+    }
 
-export async function updateProduct( id:string, prevState: ProductState, formData: FormData ) {
-        // ✓ Verificar que el usuario sea admin
-        try {
-            await requireAdmin();
-        } catch (error) {
-            return {
-                message: error instanceof Error ? error.message : 'Forbidden'
-            };
+    // 2. Parsear categorías (es importante hacer esto antes de validar)
+    const categoryIds = formData.getAll('categoryIds').filter(
+        (id): id is string => typeof id === 'string'
+    );
+
+    const validateProduct = UpdateProductSchema.safeParse({
+        nombre: formData.get('nombre'),
+        descripcion: formData.get('descripcion'),
+        precio: formData.get('precio'),
+        stock: formData.get('stock'),
+        caracteristicas: JSON.parse(formData.get('caracteristicas') as string),
+        imagen: formData.get('imagen'),
+        categoryIds: categoryIds,
+    });
+
+    if (!validateProduct.success) {
+        return {
+            errors: validateProduct.error.flatten().fieldErrors,
+            message: 'Validation Error: Falla al actualizar el producto. Verifique el formulario.'
+        };
+    }
+
+    const { nombre, descripcion, precio, stock, caracteristicas, imagen } = validateProduct.data;
+    let imagenUrl: string | null = null;
+
+    // 3. Si hay nueva imagen la subimos a Supabase storage
+    if (imagen instanceof File && imagen.size > 0) {
+        const fileExt = imagen.name.split(".").pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, imagen, { contentType: imagen.type });
+
+        if (uploadError) {
+            console.error('Error de supabase storage:', uploadError);
+            return { message: 'Error al actualizar la imagen del producto' };
         }
 
-        const validateProduct = UpdateProductSchema.safeParse({
-            nombre: formData.get('nombre'),
-            descripcion: formData.get('descripcion'),
-            precio : formData.get('precio'),
-            stock: formData.get('stock'),
-            caracteristicas: JSON.parse(formData.get('caracteristicas') as string),
-            imagen : formData.get('imagen')
+        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
+        imagenUrl = publicUrlData.publicUrl;
+    }
+
+    try {
+        // 4. USAR TRANSACCIÓN PARA ACTUALIZAR PRODUCTO + CATEGORÍAS
+        await sql.begin(async (sql) => {
+            
+            // A. Actualizar datos del producto
+            await sql`
+                UPDATE products
+                SET nombre = ${nombre},
+                    descripcion = ${descripcion},
+                    precio = ${precio},
+                    stock = ${stock},
+                    caracteristicas = ${JSON.stringify(caracteristicas)},
+                    imagen = COALESCE(${imagenUrl}, imagen)
+                WHERE id = ${id}
+            `;
+
+            // B. ELIMINAR las relaciones de categorías antiguas
+            await sql`
+                DELETE FROM product_categories
+                WHERE product_id = ${id}
+            `;
+
+            // C. INSERTAR las nuevas relaciones de categorías
+            // Recorremos el array categoryIds obtenido del formData
+            if (categoryIds && categoryIds.length > 0) {
+                for (const categoryId of categoryIds) {
+                    await sql`
+                        INSERT INTO product_categories (product_id, category_id)
+                        VALUES (${id}, ${categoryId})
+                    `;
+                }
+            }
         });
 
-        if(!validateProduct.success){
-            return {
-                errors: validateProduct.error.flatten().fieldErrors,
-                message: 'Validation Error: Falla al actualizar el producto. Verifique el formulario.'
-            }
-        }
+    } catch (error) {
+        console.error('ERROR EN SERVER ACTION:', error);
+        return { message: 'Error al actualizar el producto. Por favor revise los datos ingresados.' }
+    }
 
-        const { nombre, descripcion, precio, stock, caracteristicas, imagen } = validateProduct.data;
-
-         let imagenUrl: string | null = null;
-
-        // Si hay nueva imagen la subimos a supabase storage
-
-         if (imagen instanceof File && imagen.size > 0) {
-            const fileExt = imagen.name.split(".").pop();
-            const fileName = `${crypto.randomUUID()}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage.from('products').upload(fileName, imagen, { contentType: imagen.type});
-
-            if (uploadError) {
-                console.error('Error de supabase storage:', uploadError);
-                return { message: 'Error al actualizar la imagen del producto'};
-            }
-
-            const {data: publicUrlData} = supabase.storage.from('products').getPublicUrl(fileName);
-            imagenUrl = publicUrlData.publicUrl;
-         }
-
-        try {
-            await sql`
-            UPDATE products
-                SET nombre = ${nombre},
-                descripcion = ${descripcion},
-                precio = ${precio},
-                stock = ${stock},
-                caracteristicas = ${JSON.stringify(caracteristicas)},
-                imagen = COALESCE(${imagenUrl}, imagen)
-            WHERE id = ${id}
-            `;
-        } catch (error) {
-            console.error('ERROR EN SERVER ACTION:', error);
-            return { message: 'Error al actualizar el producto. Por favor revise los datos ingresados.'}
-        }
-
-        revalidatePath('/dashboard/products');
-        redirect('/dashboard/products');
+    revalidatePath('/dashboard/products');
+    revalidatePath('/shop');
+    redirect('/dashboard/products');
 }
 
 
@@ -445,8 +582,9 @@ export async function deleteProduct(id: string) {
 
     await sql` DELETE FROM products WHERE id = ${id}`;
     revalidatePath('/dashboard/products');
+    revalidatePath('/shop');
+    revalidatePath(`/shop/${id}`); // Revalidar la página de detalle del producto eliminado
 }
-
 
 
 
@@ -500,10 +638,38 @@ export async function createCategories(prevState: CategoryState, formData: FormD
     }
 
     revalidatePath('/dashboard/categories');
+    revalidatePath('/shop');
     return {message: 'Categoria creada correctamente'};
 }
 
 
+
+export async function deleteCategory(id: string) {
+    // Verifica que el usuario se admin
+
+    try {
+        await requireAdmin();
+    } catch (error) {
+        throw error; // Esto propaga el error de autenticacion 
+    }
+
+    try {
+        // Eliminar la categoria
+        /* Ver si existe restriccion de clave foranea en product_categories asegurarse de que la BD
+        tenga ON DELETE CASCADE, o eliminar primero product_category*/
+
+        await sql`DELETE FROM categories WHERE id = ${id}`;
+
+        // Si no se utiliza CASCADE en la BD, descomentar esta línea para borrar relaciones manualmente:
+        // await sql`DELETE FROM product_categories WHERE category_id = ${id}`;
+    } catch (error) {
+        console.error('Error al eliminar la categoria:', error)
+        // Retorna o devuleve un error para manejarli en UI si es necesario
+        throw new Error('Error al eliminar la categoria. Es posible que aun tenga productos asociados')
+    }
+    revalidatePath('/dashboard/categories');
+    revalidatePath('/dashboard/products');
+}
 
 
 
@@ -606,6 +772,40 @@ export async function createOrder(prevState: OrderState, formData: FormData): Pr
             }
 }
 
+
+const UpdateOrderEmailSchema = z.object({
+    orderId: z.string().uuid(),
+    email: z.string().email(),
+});
+
+
+export async function updateOrderEmail(prevState: {message?: string}, formData: FormData) {
+    // Seguridad: verificar que le usuario sea admin
+    await requireAdmin();
+
+    const parsed = UpdateOrderEmailSchema.safeParse({
+        orderId: formData.get('orderId'),
+        email: formData.get('email'),
+    });
+
+    if(!parsed.success){
+        return {message: 'Email Invalido!'}
+    }
+
+    const {orderId, email} = parsed.data;
+
+    await sql`
+        UPDATE orders
+        SET customer_email = ${email}
+        WHERE id = ${orderId}
+    `;
+
+    // Revalidar paginas relevantes
+    revalidatePath(`/dashboard/admin/orders/${orderId}`);
+    revalidatePath('/dashboard/admin/orders');
+
+    return {message: 'Email actualizado correctamente'};
+}
 
 
 
@@ -875,3 +1075,118 @@ export async function getStripeCheckoutUrl(orderId: string): Promise<string | nu
 }
 
 
+
+
+const ResendClient = new Resend(process.env.RESEND_API_KEY);
+
+// lib/actions.ts
+
+export async function sendOrderEmail(prevState: any, formData: FormData): Promise<{ message: string }> {
+    // 1. Verificar que el usuario sea admin
+    try {
+        await requireAdmin();
+    } catch (error) {
+        return { message: 'NO autorizado' };
+    }
+
+    const orderId = formData.get('orderId') as string;
+
+    // 2. Obtener datos de la orden
+    const order = await fetchOrderById(orderId);
+    const items = await fetchOrderItem(orderId);
+
+    if (!order || !order.customer_email) {
+        return { message: 'Orden no encontrada o sin email asociado' };
+    }
+
+    // 3. Construir el contenido HTML del correo (Ticket)
+    const itemsHTML = items.map((item: any) => `
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee;">
+                <span style="font-weight:bold; color:#333;">${item.product_name}</span>
+            </td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee;">$${(item.price / 100).toFixed(2)}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: right;">$${(item.subtotal / 100).toFixed(2)}</td>
+        </tr>`
+    ).join('');
+
+    const emailHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; background-color: #fff;">
+            <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">Detalle de tu Compra</h1>
+            </div>
+
+            <div style="padding: 20px;">
+                <p style="font-size: 16px;">Hola, <strong>${order.customer_name}</strong></p>
+                <p>Gracias por tu compra. Aquí está el detalle de tu orden <strong>#${order.id}</strong>:</p>
+                
+                <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <p style="margin: 5px 0;"><strong>Fecha:</strong> ${new Date(order.created_at).toLocaleDateString('es-ES')}</p>
+                    <p style="margin: 5px 0;"><strong>Total a pagar:</strong> 
+                        <span style="color: #2563eb; font-size: 1.4em; font-weight: bold;">$${(order.total / 100).toFixed(2)}</span>
+                    </p>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 14px;">
+                    <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                        <tr>
+                            <th style="text-align: left; padding: 12px 8px; color: #374151;">Producto</th>
+                            <th style="text-align: center; padding: 12px 8px; color: #374151;">Cant.</th>
+                            <th style="text-align: left; padding: 12px 8px; color: #374151;">Precio</th>
+                            <th style="text-align: right; padding: 12px 8px; color: #374151;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold;">TOTAL:</td>
+                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 1.2em;">$${(order.total / 100).toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <p style="margin-bottom: 4px; font-weight: bold;">¡Gracias por tu compra!</p>
+                    <p>Conserve este comprobante</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 4. Enviar el correo (DOMINIO VERIFICADO - SOLUCIÓN ABOEJA)
+    try {
+        const { data, error } = await ResendClient.emails.send({
+            // OPCIÓN 1 (Recomendada): Usa tu dominio verificado en la opción from
+            from: 'ROMA Multirubros <onboarding@resend.dev>', // <--- Usar tu dominio + "noreply@" (o tu dirección genérica)
+            // Al usar "noreply@", no necesitas crear un alias en Resend.
+            
+            // El destinatario (email del cliente)
+            to: [order.customer_email],
+
+            // Asunto del correo
+            subject: `Detalle de tu compra - Orden #${order.id}`,
+
+            // El contenido HTML
+            html: emailHTML,
+        });
+
+        if (error) {
+            console.error('Error en el envío del email:', error);
+            return { message: 'Error al enviar el mail' };
+        }
+
+        console.log('Email enviado:', data);
+        return { message: 'Detalle de la orden enviado correctamente' };
+
+    } catch (error) {
+        console.error('Error en el envío del email:', error);
+        return { message: 'Error al enviar el correo' };
+    }
+
+    // 5. Revalidar (Importante para que el cliente vea cambios)
+    /*revalidatePath('/shop');
+    revalidatePath('/dashboard/products'); // También se puede agregar revalidPath('/dashboard/orders/[id]')*/
+}

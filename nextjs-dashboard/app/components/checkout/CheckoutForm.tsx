@@ -4,19 +4,36 @@ import { useCart } from "../cart/CartProvider";
 import { createOrder } from "@/app/lib/actions";
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { z } from "zod";
 
 interface CheckoutFormProps {
     userId?: string | null;
     isAuthenticated?: boolean;
+    defaultName?: string;
+    defaultEmail?: string;
 }
 
-export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormProps) {
+// Validación de checkout
+const CheckoutSchema = z.object({
+    firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+    email: z.string().email('Email inválido').optional().or(z.literal('')),
+});
+
+export default function CheckoutForm({ userId, isAuthenticated, defaultName = '', defaultEmail = '' }: CheckoutFormProps) {
     const {items, total, clear} = useCart();
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
+    
+    // Dividir el nombre completo en nombre y apellido
+    const nameParts = defaultName.trim().split(' ');
+    const defaultFirstName = nameParts[0] || '';
+    const defaultLastName = nameParts.slice(1).join(' ') || '';
+    
+    const [firstName, setFirstName] = useState(defaultFirstName);
+    const [lastName, setLastName] = useState(defaultLastName);
+    const [email, setEmail] = useState(defaultEmail);
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
 
     if(!items.length){
@@ -34,11 +51,26 @@ export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormPr
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setFieldErrors({});
 
-        if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-            setError('Por favor completa todos los campos requeridos');
+        // Validar datos con Zod
+        const validation = CheckoutSchema.safeParse({
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim(),
+        });
+
+        if (!validation.success) {
+            const errors: { [key: string]: string } = {};
+            validation.error.errors.forEach((err) => {
+                if (err.path[0]) {
+                    errors[err.path[0] as string] = err.message;
+                }
+            });
+            setFieldErrors(errors);
             return;
         }
+
 
     startTransition(() => {
         (async () => {
@@ -116,9 +148,12 @@ export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormPr
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder="Ej: Juan"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.firstName ? 'border-red-500' : 'border-gray-300'}`}
                             required
                         />
+                        {fieldErrors.firstName && (
+                            <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -129,9 +164,12 @@ export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormPr
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Ej: Pérez"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.lastName ? 'border-red-500' : 'border-gray-300'}`}
                             required
                         />
+                        {fieldErrors.lastName && (
+                            <p className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</p>
+                        )}
                     </div>
                 </div>
 
@@ -144,9 +182,11 @@ export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormPr
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="tu@email.com"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        //required
+                        className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {fieldErrors.email && (
+                        <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+                    )}
                 </div>
             </div>
 
@@ -182,7 +222,7 @@ export default function CheckoutForm({ userId, isAuthenticated }: CheckoutFormPr
 
                 <button
                     type="submit"
-                    disabled={isPending || !firstName || !lastName || !email}
+                    disabled={isPending || !firstName || !lastName}
                     className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                 >
                     {isPending ? 'Procesando compra...' : 'Finalizar Compra'}

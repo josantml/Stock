@@ -13,16 +13,20 @@ export default function Search({ placeholder }: { placeholder: string }) {
   function handleSearch(term: string) {
     // Implement search logic here
     const params = new URLSearchParams(searchParams);
+
     if (term) {
       params.set('query', term);
+      params.delete('category'); // limpia categoria al buscar
     } else {
       params.delete('query');
     }
 
+    params.delete('page'); // resetar paginacion al buscar
     replace(`${pathname}?${params.toString()}`)
 
   }
 
+  
   return (
     <div className="relative flex flex-1 flex-shrink-0">
       <label htmlFor="search" className="sr-only">
@@ -35,7 +39,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
 
         defaultValue={searchParams.get('query')?.toString()}
       />
-      <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+      <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900"/>
     </div>
   );
 }

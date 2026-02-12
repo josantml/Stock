@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem } from '../../lib/cart';
+import { getEncryptedLocalStorage, setEncryptedLocalStorage, removeEncryptedLocalStorage } from '@/app/lib/encryption';
 
 type CartContextType = {
     items: CartItem[];
@@ -17,12 +18,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
 
     useEffect(() => {
-        const stored = localStorage.getItem('cart');
-        if (stored) setItems(JSON.parse(stored));
+        try {
+            const stored = getEncryptedLocalStorage('cart');
+            if (stored && Array.isArray(stored)) {
+                setItems(stored);
+            }
+        } catch (error) {
+            console.error('Error reading cart from localStorage');
+            //  Si falla, empieza con carrito vacío para no romper la app
+            setItems([]);
+        }
+        
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(items));
+        setEncryptedLocalStorage('cart', items);
     }, [items]);
 
     const areOptionsEqual = (a?: Record<string, string>, b?: Record<string, string>) => {
