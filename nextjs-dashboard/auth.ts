@@ -12,7 +12,7 @@ const AUTH_URL = process.env.NODE_ENV === 'production'
   : process.env.AUTH_URL_DEVELOPMENT || 'http://localhost:3000/api/auth';
 
 // Validar que AUTH_URL esté configurada
-if (!process.env.NODE_ENV === 'production' && !AUTH_URL) {
+if (process.env.NODE_ENV !== 'production' && !AUTH_URL) {
   console.warn('AUTH_URL not configured. Using default: http://localhost:3000/api/auth');
 }
 
