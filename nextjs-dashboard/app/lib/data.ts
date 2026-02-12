@@ -20,13 +20,9 @@ export async function fetchRevenue() {
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
-
-    console.log('Fetching revenue data...');
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue[]>`SELECT * FROM revenue`;
-
-    console.log('Data fetch completed after 3 seconds.');
 
     return data;
   } catch (error) {
@@ -42,7 +38,6 @@ export async function fetchProducts() {
         SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
         FROM products
       `;
-      console.log('PRODUCTOS DESDE DB:', data);
       return data
   } catch (error) {
     console.error('Database Error:', error)
@@ -71,7 +66,6 @@ export async function fetchCategories(): Promise<Categories[]> {
 export async function fetchLatestInvoices() {
   try {
 
-    console.log('Fetching Latst Invoices...');
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const data = await sql<LatestInvoiceRaw[]>`
@@ -205,8 +199,6 @@ export async function fetchFilteredProducts(query : string, currentPage: number)
       ORDER BY nombre ASC
       LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
     `;
-
-    console.log('RESULTADOS:', productsFilter.length);
 
     return productsFilter
   } catch (error) {

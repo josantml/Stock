@@ -3,9 +3,11 @@ import { generateTicketHTML } from '@/app/lib/invoices/generateTicketPDF/generat
 
 export async function GET(
   req: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const html = await generateTicketHTML(params.orderId);
+
+  const { orderId} = await params;
+  const html = await generateTicketHTML(orderId);
 
   return new Response(html, {
     headers: {
