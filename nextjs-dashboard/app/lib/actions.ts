@@ -1030,12 +1030,7 @@ export async function newUpdateOrderStatus(orderId: string, newStatus: OrderStat
             let invoiceId: string | null = order.invoice_id;
 
             if(newStatus === 'paid' && !order.invoice_id){
-                /*const [orderData] = await sql`
-                    SELECT customer_id, total
-                    FROM orders
-                    WHERE id = ${orderId}
-                `;*/
-
+               
 
                 const [invoice] = await sql`
                 INSERT INTO invoices (customer_id, amount, status, date)
