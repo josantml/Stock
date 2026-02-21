@@ -15,7 +15,7 @@ export default function ProductCard({ product }: { product: any }) {
     addItem({
       productId: product.id,
       name: product.nombre,
-      price: product.precio * 100,
+      price: product.precio,
       quantity,
       stock: product.stock,
       image: product.imagen,

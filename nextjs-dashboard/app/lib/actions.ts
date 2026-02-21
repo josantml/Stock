@@ -1109,8 +1109,8 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
                 <span style="font-weight:bold; color:#333;">${item.product_name}</span>
             </td>
             <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-            <td style="padding: 12px 8px; border-bottom: 1px solid #eee;">$${(item.price / 100).toFixed(2)}</td>
-            <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: right;">$${(item.subtotal / 100).toFixed(2)}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee;">$${item.price}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid #eee; text-align: right;">$${item.subtotal}</td>
         </tr>`
     ).join('');
 
@@ -1127,7 +1127,7 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
                 <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin-top: 20px;">
                     <p style="margin: 5px 0;"><strong>Fecha:</strong> ${new Date(order.created_at).toLocaleDateString('es-ES')}</p>
                     <p style="margin: 5px 0;"><strong>Total a pagar:</strong> 
-                        <span style="color: #2563eb; font-size: 1.4em; font-weight: bold;">$${(order.total / 100).toFixed(2)}</span>
+                        <span style="color: #2563eb; font-size: 1.4em; font-weight: bold;">$${order.total}</span>
                     </p>
                 </div>
 
@@ -1146,7 +1146,7 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
                     <tfoot>
                         <tr>
                             <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold;">TOTAL:</td>
-                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 1.2em;">$${(order.total / 100).toFixed(2)}</td>
+                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 1.2em;">$${order.total}</td>
                         </tr>
                     </tfoot>
                 </table>

@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Activar mantenimiento: cambiar a true para activar
+const MAINTENANCE_MODE = true;
+
 // Rutas públicas que no requieren autenticación
 const PUBLIC_ROUTES = ['/shop', '/cart', '/login', '/register', '/api/'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Redirigir a mantenimiento si está activado y no es la página de mantenimiento
+  if (MAINTENANCE_MODE && !pathname.startsWith('/maintenance')) {
+    return NextResponse.redirect(new URL('/maintenance', request.url));
+  }
 
   // Permitir todas las rutas públicas
   if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
