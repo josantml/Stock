@@ -56,7 +56,6 @@ export async function middleware(request: NextRequest) {
   });
 
   console.log("TOKEN:", token);
-  
   const isAdmin = token?.role === 'admin';
 
   // 🚧 Si está en mantenimiento:
