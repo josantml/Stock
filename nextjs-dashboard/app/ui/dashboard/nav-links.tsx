@@ -37,12 +37,12 @@ const links: NavLink[] = [
     icon: DocumentDuplicateIcon,
     adminOnly: true,
   },
-  {
+  /*{
     name: 'Facturas',
     href: '/dashboard/invoices',
     icon: DocumentDuplicateIcon,
     adminOnly: true,
-  },
+  },*/
   {
     name: 'Clientes',
     href: '/dashboard/customers',

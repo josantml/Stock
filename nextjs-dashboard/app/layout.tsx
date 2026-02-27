@@ -6,9 +6,12 @@ import { SessionProvider } from 'next-auth/react';
 import CartUI from './components/cart/CartUI';
 
 export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon2.png',
+  },
   title: {
     template: '%s | Pablo Dashboard',
-    default: 'Pablo Dashboard',
+    default: 'ROMA Multirubro',
   },
   description: 'The Officia Next Course Dashboard, built with App Router.',
   metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),

@@ -292,18 +292,19 @@ export async function registerUser(prevState: RegisterState, formData: FormData)
 
   // Inserta el nuevo usuario
   const userId = crypto.randomUUID(); // Generar ID para la tabla users
+  const customerId = crypto.randomUUID();
 
   try {
     await sql.begin(async (sql) => {
       // Crear en la tabla 'users' ( para Autenticación)
       await sql`
-        INSERT INTO users (id, name, email, password, role)
-        VALUES (${userId}, ${name}, ${email}, ${hashedPassword}, 'client')
+        INSERT INTO users (id, name, email, password, role, customer_id)
+        VALUES (${userId}, ${name}, ${email}, ${hashedPassword}, 'client', ${customerId})
       `;
 
       // Crear en la tabla 'customers' (Para el sistema de facturas/compras)
       // Esto vincula la autenticación con los datos comerciales.
-      const customerId = crypto.randomUUID(); 
+       
       await sql`
         INSERT INTO customers (id, name, email, image_url)
         VALUES (${customerId}, ${name}, ${email}, '/users/default.png')
