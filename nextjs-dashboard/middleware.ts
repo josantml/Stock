@@ -55,6 +55,8 @@ export async function middleware(request: NextRequest) {
     secret: process.env.AUTH_SECRET,
   });
 
+  console.log("TOKEN:", token);
+  
   const isAdmin = token?.role === 'admin';
 
   // 🚧 Si está en mantenimiento:
