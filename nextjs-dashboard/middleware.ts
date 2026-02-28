@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
   console.log('Cookies en request:', request.cookies);
 
   // Permitir siempre acceder a la página de mantenimiento, login y auth
-  if (pathname.startsWith('/maintenance') || pathname.startsWith('/login') || pathname.startsWith('/api/auth')) {
+  if (pathname.startsWith('/maintenance') || pathname.startsWith('/login') || pathname.startsWith('/api/auth') || pathname.startsWith('/dashboard/products')) {
     return NextResponse.next();
   }
 
