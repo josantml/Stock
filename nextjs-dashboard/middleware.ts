@@ -44,7 +44,10 @@ const MAINTENANCE_MODE = true;
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Permitir siempre acceder a la página de mantenimiento
+  // Log de todas las cookies
+  console.log('Cookies en request:', request.cookies);
+
+  // Permitir siempre acceder a la página de mantenimiento, login y auth
   if (pathname.startsWith('/maintenance') || pathname.startsWith('/login') || pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
@@ -52,10 +55,11 @@ export async function middleware(request: NextRequest) {
   // Obtener token de sesión (NextAuth)
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET, // ⚠ Usar NEXTAUTH_SECRET
   });
 
   console.log("TOKEN:", token);
+
   const isAdmin = token?.role === 'admin';
 
   // 🚧 Si está en mantenimiento:
