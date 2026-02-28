@@ -39,7 +39,7 @@ export const config = {
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
   console.log('Cookies en request:', request.cookies);
 
   // Permitir siempre acceder a la página de mantenimiento, login y auth
-  if (pathname.startsWith('/maintenance') || pathname.startsWith('/login') || pathname.startsWith('/api/auth') || pathname.startsWith('/dashboard/products')) {
+  if (pathname.startsWith('/maintenance') || pathname.startsWith('/login') || pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
 
