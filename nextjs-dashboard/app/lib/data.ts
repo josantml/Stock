@@ -22,7 +22,17 @@ export async function fetchRevenue() {
     // Don't do this in production :)
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const data = await sql<Revenue[]>`SELECT * FROM revenue`;
+    // Consulta real: Sumamos el total de ordenes 'pagadas' por mes
+   const data = await sql<Revenue[]>`
+      SELECT
+        TO_CHAR(created_at, 'Mon') AS month,
+        SUM(total) AS revenue
+      FROM orders
+      WHERE status IN ('paid', 'pending')
+        AND created_at >= NOW() - INTERVAL '1 year' -- Filtra último año
+      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+      ORDER BY EXTRACT(MONTH FROM created_at) ASC
+    `;
 
     return data;
   } catch (error) {
@@ -609,3 +619,66 @@ export async function fetchOrderFull(orderId: string) {
 }
 
 
+// 1. Productos más y menos vendidos
+export async function fetchTopProducts() {
+  try {
+    // Unimos order_items con products, sumamos las cantidades y ordenamos
+    const data = await sql`
+      SELECT 
+        p.nombre, 
+        p.imagen,
+        SUM(oi.quantity) as total_vendido
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.status != 'cancelled' -- Excluimos órdenes canceladas
+      GROUP BY p.id, p.nombre, p.imagen
+      ORDER BY total_vendido DESC
+      LIMIT 5;
+    `;
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch top products.');
+  }
+}
+
+// 2. Clientes que más compran
+export async function fetchTopCustomers() {
+  try {
+    // Agrupamos por cliente y sumamos el total de sus órdenes
+    const data = await sql`
+      SELECT 
+        customer_name, 
+        customer_email,
+        SUM(total) as total_gastado,
+        COUNT(id) as total_ordenes
+      FROM orders
+      WHERE status != 'cancelled'
+      GROUP BY customer_name, customer_email
+      ORDER BY total_gastado DESC
+      LIMIT 5;
+    `;
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch top customers.');
+  }
+}
+
+// 3. Stock disponible (Actualizado automáticamente tras compras)
+export async function fetchLowStockProducts() {
+  try {
+    // Traemos productos con stock bajo (ej. menor a 10 unidades)
+    const data = await sql`
+      SELECT nombre, stock, imagen
+      FROM products
+      WHERE stock <= 10
+      ORDER BY stock ASC;
+    `;
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch stock data.');
+  }
+}
