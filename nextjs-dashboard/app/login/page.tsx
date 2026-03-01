@@ -28,7 +28,9 @@ export default function LoginPage() {
         </div>
 
         <div className="pt-16">
-          <LoginForm />
+          <Suspense fallback={<div className="text-center text-gray-500">Cargando...</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
 
       </div>
