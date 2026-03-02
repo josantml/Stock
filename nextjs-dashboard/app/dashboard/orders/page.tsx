@@ -52,7 +52,7 @@ export default async function Page(){
                                             {new Date(order.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-3 font-semibold">
-                                            ${(order.total / 100).toFixed(2)}
+                                            ${order.total.toFixed(2)}
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs capitalize">

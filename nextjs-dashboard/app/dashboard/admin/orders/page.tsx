@@ -89,7 +89,7 @@ export default async function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
-                      ${(order.total / 100).toFixed(2)}
+                      ${order.total.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(order.created_at).toLocaleDateString('es-ES')}

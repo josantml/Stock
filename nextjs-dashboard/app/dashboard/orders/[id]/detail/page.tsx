@@ -67,7 +67,7 @@ export default async function Page({params}: {params: Promise<{id: string}>;}){
                     </div>
                     <div className="">
                         <p className="">Total Pagado</p>
-                        <p className="">${(order.total / 100).toFixed(2)}</p>
+                        <p className="">${order.total.toFixed(2)}</p>
                     </div>
                 </div>
             </div>
@@ -92,8 +92,8 @@ export default async function Page({params}: {params: Promise<{id: string}>;}){
                             <tr key={item.id}>
                                 <td className="">{item.product_name}</td>
                                 <td className="">{item.quantity}</td>
-                                <td className="">${(item.price / 100).toFixed(2)}</td>
-                                <td className="">${(item.subtotal / 100).toFixed(2)}</td>
+                                <td className="">${item.price.toFixed(2)}</td>
+                                <td className="">${item.subtotal.toFixed(2)}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -87,7 +87,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <div>
                   <p className="text-sm text-gray-600">Total</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    ${(order.total / 100).toFixed(2)}
+                    ${order.total.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -156,10 +156,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                         {item.quantity}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        ${(item.price / 100).toFixed(2)}
+                        ${item.price.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
-                        ${(item.subtotal / 100).toFixed(2)}
+                        ${item.subtotal.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {item.notes ? (

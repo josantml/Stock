@@ -31,10 +31,10 @@ export default function ProductCard({ product }: { product: any }) {
           <Image
             src={product.imagen}
             alt={product.nombre}
-            width={400}
+            width={300}
             height={400}
             loading="lazy"
-            className="object-contain"
+            className="object-contain max-h-full"
             onError={(e) => {
               e.currentTarget.src = '/products/placeholder.png';
             }}

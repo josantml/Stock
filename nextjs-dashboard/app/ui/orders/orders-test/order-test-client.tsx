@@ -40,7 +40,7 @@ export default function OrdersTestClient({orders,} : {orders: OrderRow[]}) {
                         <td className="px-3 py-2">{order.id}</td>
                         <td className="px-3 py-2">{order.customer_name}</td>
                         <td className="px-3 py-2">{order.status}</td>
-                        <td className="px-3 py-2">{order.total / 100}</td>
+                        <td className="px-3 py-2">{order.total}</td>
                         <td className="px-3 py-2 flex gap-2">
                             <button 
                                 className="rounded bg-green-600 px-2 py-1 text-white disabled:opacity-50"
