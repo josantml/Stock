@@ -99,7 +99,7 @@ export default function OrdersList({ customerId, orders }: OrdersListProps) {
                   {formatDateToLocal(order.created_at)}
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                  ${(order.total / 100).toFixed(2)}
+                  ${order.total.toFixed(2)}
                 </td>
                 <td className="px-6 py-4">
                   <span
@@ -150,7 +150,7 @@ export default function OrdersList({ customerId, orders }: OrdersListProps) {
               </div>
               <div>
                 <p className="text-gray-600">Total</p>
-                <p className="font-medium">${(order.total / 100).toFixed(2)}</p>
+                <p className="font-medium">${order.total.toFixed(2)}</p>
               </div>
             </div>
             <Link

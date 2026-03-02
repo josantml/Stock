@@ -95,7 +95,7 @@ function CartContent() {
                                                 </div>
                                             )}
                                             <p className="text-lg font-semibold text-blue-600 mt-2">
-                                                ${((item.price * item.quantity) / 100).toFixed(2)}
+                                                ${(item.price * item.quantity).toFixed(2)}
                                             </p>
                                         </div>
 
@@ -131,7 +131,7 @@ function CartContent() {
                                                 <h5>{item.name}</h5>
                                                 <div className="flex justify-between">
                                                     <span>Subtotal</span>
-                                                    <span>${((item.quantity * item.price)/ 100).toFixed(2)}</span>
+                                                    <span>${(item.quantity * item.price).toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         ))}
@@ -144,7 +144,7 @@ function CartContent() {
 
                                 <div className="flex justify-between pt-4 mb-6 font-bold text-lg text-gray-900">
                                     <span>Total</span>
-                                    <span className="text-blue-600">${(total / 100).toFixed(2)}</span>
+                                    <span className="text-blue-600">${total.toFixed(2)}</span>
                                 </div>
 
                                 <Link

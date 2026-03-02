@@ -31,7 +31,7 @@ export default function ProductCard({ product }: { product: any }) {
           <Image
             src={product.imagen}
             alt={product.nombre}
-            width={300}
+            width={400}
             height={400}
             loading="lazy"
             className="object-contain max-h-full"

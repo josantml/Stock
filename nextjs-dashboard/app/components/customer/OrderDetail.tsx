@@ -91,12 +91,12 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                     Cantidad: <span className="font-medium">{item.quantity}</span>
                   </p>
                   <p className="text-sm text-gray-600">
-                    Precio: <span className="font-medium">${(item.price / 100).toFixed(2)}</span>
+                    Precio: <span className="font-medium">${item.price.toFixed(2)}</span>
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold text-gray-900">
-                    ${(item.subtotal / 100).toFixed(2)}
+                    ${item.subtotal.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -110,7 +110,7 @@ export default function OrderDetail({ order }: OrderDetailProps) {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Subtotal:</span>
               <span className="text-gray-900 font-medium">
-                ${(subtotal / 100).toFixed(2)}
+                ${subtotal.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -119,7 +119,7 @@ export default function OrderDetail({ order }: OrderDetailProps) {
             </div>
             <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
               <span>Total:</span>
-              <span>${(order.total / 100).toFixed(2)}</span>
+              <span>${order.total.toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -23,7 +23,7 @@ export default function CartSidebar({onClose}:{onClose:()=>void}){
                             </div>
                             <div className="flex-1 text-sm">
                                 <div className="font-medium truncate">{i.name}</div>
-                                <div className="text-gray-500 text-xs">{i.quantity} x ${(i.price/100).toFixed(2)}</div>
+                                <div className="text-gray-500 text-xs">{i.quantity} x ${i.price.toFixed(2)}</div>
                             </div>
                             <div>
                                 <button onClick={() => removeItem(i.productId)} className="text-sm text-red-600">Quitar</button>
@@ -36,7 +36,7 @@ export default function CartSidebar({onClose}:{onClose:()=>void}){
             <div className="p-4 border-t">
                 <div className="flex justify-between items-center mb-3">
                     <span className="font-semibold">Total</span>
-                    <span className="font-bold">${(total/100).toFixed(2)}</span>
+                    <span className="font-bold">${total.toFixed(2)}</span>
                 </div>
                 <div className="space-y-2">
                     <a href="/cart" className="block text-center w-full px-3 py-2 bg-blue-600 text-white rounded">Ir al carrito</a>
