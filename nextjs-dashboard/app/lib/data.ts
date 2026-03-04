@@ -484,7 +484,7 @@ export async function fetchProductByCategorySlug(slug: string, currentPage: numb
     JOIN product_categories pc ON p.id = pc.product_id
     JOIN categories c ON c.id = pc.category_id
     WHERE c.slug = ${slug}
-    ORDER BY p.nombre ASC;
+    ORDER BY p.nombre ASC
     LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
     `;
 
