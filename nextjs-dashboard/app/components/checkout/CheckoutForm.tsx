@@ -201,7 +201,7 @@ export default function CheckoutForm({ userId, isAuthenticated, defaultName = ''
                                 {item.name} x {item.quantity}
                             </span>
                             <span className="font-medium text-gray-900">
-                                ${((item.price * item.quantity) / 100).toFixed(2)}
+                                ${(item.price * item.quantity).toFixed(2)}
                             </span>
                         </div>
                     ))}
@@ -210,7 +210,7 @@ export default function CheckoutForm({ userId, isAuthenticated, defaultName = ''
                 <div className="flex justify-between items-center mb-6">
                     <span className="text-lg font-semibold text-gray-900">Total:</span>
                     <span className="text-3xl font-bold text-blue-600">
-                        ${(total / 100).toFixed(2)}
+                        ${total.toFixed(2)}
                     </span>
                 </div>
 

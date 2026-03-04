@@ -42,13 +42,25 @@ export async function fetchRevenue() {
 }
 
 
-export async function fetchProducts() {
+const PRODUCT_PER_PAGE = 12;
+
+export async function fetchProducts(currentPage: number) {
+  const offset = (currentPage - 1) * PRODUCT_PER_PAGE;
+
   try {
+    // Consulta real: Traemos productos con paginación
+      const countResult = await sql`SELECT COUNT(*) FROM products`;
+      const totalProducts = countResult[0].count;
+      const totalPages = Math.ceil(Number(totalProducts) / PRODUCT_PER_PAGE);
+
+      // Consulta para obtener productos de la pagina actual
       const data = await sql<Product[]>`
         SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
         FROM products
+        ORDER BY nombre ASC
+        LIMIT ${PRODUCT_PER_PAGE} OFFSET ${offset}
       `;
-      return data
+      return {products: data, totalPages};
   } catch (error) {
     console.error('Database Error:', error)
     throw new Error('Failed to fetch products.');
@@ -132,6 +144,7 @@ export async function fetchCardData() {
   }
 }
 
+
 const ITEMS_PER_PAGE = 6;
 export async function fetchFilteredInvoices(
   query: string,
@@ -199,6 +212,17 @@ export async function fetchFilteredProducts(query : string, currentPage: number)
 
   const offset = (currentPage - 1) * ITEMS_LIMIT_PAGE;
   try {
+
+    const countResult = await sql`SELECT COUNT(*) FROM products
+    WHERE
+      products.nombre ILIKE ${`%${query}%`} OR
+      products.descripcion ILIKE ${`%${query}%`} OR
+      products.precio::text ILIKE ${`%${query}%`}
+      `;
+
+      const totalProducts = countResult[0].count;
+      const totalPages = Math.ceil(Number(totalProducts) / ITEMS_LIMIT_PAGE);
+
     const productsFilter = await sql`
       SELECT id, nombre, descripcion, precio, imagen, stock, caracteristicas
       FROM products
@@ -210,7 +234,7 @@ export async function fetchFilteredProducts(query : string, currentPage: number)
       LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
     `;
 
-    return productsFilter
+    return {products: productsFilter, totalPages};
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch products')
@@ -435,8 +459,20 @@ export async function fetchProductByCaT(
 
 
 // Obtener los productos por el slug de la categoria
-export async function fetchProductByCategorySlug(slug: string): Promise<Product[]>{
-  const products = await sql<Product[]>`
+export async function fetchProductByCategorySlug(slug: string, currentPage: number): Promise<{products: Product[], totalPages: number}>{
+  const offset = (currentPage - 1) * ITEMS_LIMIT_PAGE;
+
+  try {
+    const countResult = await sql`SELECT COUNT(DISTINCT p.id)
+    FROM products p
+    JOIN product_categories pc ON p.id = pc.product_id
+    JOIN categories c ON c.id = pc.category_id
+    WHERE c.slug = ${slug}
+    `;
+    const totalProducts = countResult[0].count;
+    const totalPages = Math.ceil(Number(totalProducts) / ITEMS_LIMIT_PAGE);
+
+    const products = await sql<Product[]>`
     SELECT DISTINCT p.id,
     p.nombre,
     p.descripcion,
@@ -449,12 +485,19 @@ export async function fetchProductByCategorySlug(slug: string): Promise<Product[
     JOIN categories c ON c.id = pc.category_id
     WHERE c.slug = ${slug}
     ORDER BY p.nombre ASC;
+    LIMIT ${ITEMS_LIMIT_PAGE} OFFSET ${offset};
     `;
 
-    return products.map((product) => ({
+    return {products: products.map((product) => ({
       ...product,
       caracteristicas: normalizeCaracteristicas(product.caracteristicas),
-    }));
+    })), totalPages};
+
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch products by category.');
+  }
+
 }
 
 
