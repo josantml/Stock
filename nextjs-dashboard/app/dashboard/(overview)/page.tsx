@@ -5,6 +5,8 @@ import { lusitana } from "../../ui/fonts";
 import CardWrapper from "../../ui/dashboard/cards";
 import { Suspense } from "react";
 import { RevenueChartSkeleton, LatestInvoicesSkeleton, CardSkeleton } from "@/app/ui/skeletons";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 // IMPORTAR LAS NUEVAS FUNCIONES
 import { 
@@ -14,7 +16,19 @@ import {
 } from "../../lib/data";
 
 export default async function Page() {
-    // OBTENER DATOS REALES
+    // Obtener sesion y verificar rol
+    const session = await auth();
+    const isAdmin = session?.user?.role === 'admin';
+
+    // Si no es admin, redirigir a su dashboard de órdenes (o a login si no está autenticado)
+    if (!isAdmin) {
+        if(session?.user?.role === 'client'){
+            redirect('/dashboard/orders');
+        }
+        redirect('/login');
+    }
+
+    // OBTENER DATOS REALES (si es admin)
     const topProducts = await fetchTopProducts();
     const topCustomers = await fetchTopCustomers();
     const lowStockProducts = await fetchLowStockProducts();

@@ -14,6 +14,9 @@ export default async function Page(){
     const session = await auth();
 
     if(!session || session.user?.role !== 'client'){
+        if(session?.user?.role === 'admin'){
+            redirect('/dashboard/admin/orders');
+        }
         redirect('/login');
     }
 
@@ -61,7 +64,7 @@ export default async function Page(){
                                         </td>
                                         <td className="px-4 py-3">
                                             {/* Nota que cambiamos la ruta del detalle para quitarle "/detail" */}
-                                            <Link href={`/dashboard/orders/${order.id}`} className="text-blue-600 hover:underline">
+                                            <Link href={`/dashboard/orders/${order.id}/detail`} className="text-blue-600 hover:underline">
                                                 Ver Detalle
                                             </Link>
                                         </td>

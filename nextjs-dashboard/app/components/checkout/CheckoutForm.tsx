@@ -106,7 +106,15 @@ export default function CheckoutForm({ userId, isAuthenticated, defaultName = ''
 
                 // Limpiar carrito y redirigir
                 clear();
-                window.location.href = `/orders/${orderResult.orderId}`;
+
+                // Logica de redireccionamiento: Si el usuario está autenticado, lo mandamos a su dashboard de órdenes. Si es guest, lo mandamos a la vista pública de su orden.
+                if (isAuthenticated) {
+                    // Redirigir a detalle de orden en dashboard para usuarios autenticados
+                    window.location.href = `dashboard/orders/${orderResult.orderId}/detail`;
+                } else {
+                    // Redirigir a vista pública de orden para guest checkout
+                    window.location.href = `/orders/${orderResult.orderId}`;
+                }
 
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Error al procesar la orden');

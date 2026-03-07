@@ -296,21 +296,20 @@ export async function registerUser(prevState: RegisterState, formData: FormData)
 
   try {
     await sql.begin(async (sql) => {
-      // Crear en la tabla 'users' ( para Autenticación)
-      await sql`
-        INSERT INTO users (id, name, email, password, role, customer_id)
-        VALUES (${userId}, ${name}, ${email}, ${hashedPassword}, 'client', ${customerId})
-      `;
-
-      // Crear en la tabla 'customers' (Para el sistema de facturas/compras)
-      // Esto vincula la autenticación con los datos comerciales.
-       
+        // 1. PRIMERO: Crear en la tabla 'customers'
+      // Esto asegura que el ID exista antes de ser referenciado.
       await sql`
         INSERT INTO customers (id, name, email, image_url)
         VALUES (${customerId}, ${name}, ${email}, '/users/default.png')
       `;
+
+      // 2. SEGUNDO: Crear en la tabla 'users'
+      // Ahora el customer_id existe y la restricción de clave foránea se cumple.
+      await sql`
+        INSERT INTO users (id, name, email, password, role, customer_id)
+        VALUES (${userId}, ${name}, ${email}, ${hashedPassword}, 'client', ${customerId})
+      `;
       
-       
       /* para saber qué "customer" pertenece a qué "user",
        se podria agregar una columna customer_id en la tabla users, o user_id en customers.*/
       
@@ -981,6 +980,18 @@ function canTransition(from: OrderStatus, to: OrderStatus){
     };
 
     return trasitions[from]?.includes(to) ?? false;
+}
+
+
+
+export async function updateCustomerInfo(id: string, phone: string, address: string) {
+    await requireAdmin();
+    await sql`
+        UPDATE customers
+        SET phone = ${phone}, address = ${address}
+        WHERE id = ${id}
+    `;
+    revalidatePath('/dashboard/customers');
 }
 
 

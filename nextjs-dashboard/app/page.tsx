@@ -2,11 +2,16 @@ import { auth } from '@/auth';
 import Link from 'next/link';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 
 export default async function Page() {
   const session = await auth();
   const isAdmin = session?.user?.role === 'admin';
   const isClient = session?.user?.role === 'client';
+
+  if (session?.user?.role === 'client') {
+    redirect('/dashboard/orders');
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -38,7 +43,7 @@ export default async function Page() {
                   🛒 Carrito
                 </Link>
                 <Link
-                  href={isAdmin ? '/dashboard' : '/dashboard'}
+                  href={isAdmin ? '/dashboard' : '/dashboard/orders'}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   {isAdmin ? 'Admin' : 'Mi Cuenta'}

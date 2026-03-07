@@ -205,7 +205,7 @@ export async function fetchInvoicesPages(query: string) {
 
 
 
-const ITEMS_LIMIT_PAGE = 4;
+const ITEMS_LIMIT_PAGE = 9;
 export async function fetchFilteredProducts(query : string, currentPage: number){
 
   console.log('BUSCANDO:', query);
@@ -362,7 +362,9 @@ export async function fetchAllCustomers() {
         id,
         name,
         email,
-        image_url
+        image_url,
+        phone,
+        address
       FROM customers
       ORDER BY name ASC
     `;

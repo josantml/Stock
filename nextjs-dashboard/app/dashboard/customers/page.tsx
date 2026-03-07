@@ -1,5 +1,4 @@
 
-
 import { fetchAllCustomers } from '@/app/lib/data';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
@@ -24,6 +23,8 @@ export default async function Page() {
               <th className="px-4 py-2 text-left">Imagen</th>
               <th className="px-4 py-2 text-left">Nombre</th>
               <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Teléfono</th>
+              <th className="px-4 py-2 text-left">Dirección</th>
             </tr>
           </thead>
           <tbody>
@@ -38,6 +39,8 @@ export default async function Page() {
                 </td>
                 <td className="px-4 py-2">{customer.name}</td>
                 <td className="px-4 py-2">{customer.email}</td>
+                <td className="px-4 py-2">{customer.phone || '-'}</td>
+                <td className="px-4 py-2">{customer.address || '-'}</td>
               </tr>
             ))}
           </tbody>

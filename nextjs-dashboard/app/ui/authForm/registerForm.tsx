@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, startTransition } from 'react';
 import { registerUser, type RegisterState } from '@/app/lib/actions';
 import { z } from 'zod';
 
@@ -37,6 +37,7 @@ export default function RegisterForm() {
     const password = formData.get('password') as string;
 
     const validation = RegisterClientSchema.safeParse({ name, email, password });
+
     if (!validation.success) {
       const errors: Record<string, string> = {};
       validation.error.errors.forEach((err) => {
@@ -48,7 +49,9 @@ export default function RegisterForm() {
       return;
     }
 
-    formAction(formData);
+    startTransition(() => {
+        formAction(formData);
+    });
   }
 
     return(

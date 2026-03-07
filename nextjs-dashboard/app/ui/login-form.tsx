@@ -23,7 +23,7 @@ type LoginFormData = z.infer<typeof LoginSchema>;
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams.get('callbackUrl') || '/shop';
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<LoginFormData>>({});
   const [isPending, setIsPending] = useState(false);

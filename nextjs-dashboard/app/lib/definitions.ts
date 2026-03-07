@@ -15,6 +15,8 @@ export type Customer = {
   name: string;
   email: string;
   image_url: string;
+  phone?: string;
+  address?: string;
 };
 
 export type Invoice = {
@@ -174,6 +176,8 @@ export type CustomersTableType = {
   name: string;
   email: string;
   image_url: string;
+  phone?: string;
+  address?: string;
   total_invoices: number;
   total_pending: number;
   total_paid: number;
