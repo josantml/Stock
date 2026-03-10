@@ -42,7 +42,7 @@ export async function fetchRevenue() {
 }
 
 
-const PRODUCT_PER_PAGE = 12;
+const PRODUCT_PER_PAGE = 15;
 
 export async function fetchProducts(currentPage: number) {
   const offset = (currentPage - 1) * PRODUCT_PER_PAGE;

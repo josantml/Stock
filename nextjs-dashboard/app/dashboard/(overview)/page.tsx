@@ -9,11 +9,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
 // IMPORTAR LAS NUEVAS FUNCIONES
-import { 
-  fetchTopProducts, 
-  fetchTopCustomers, 
-  fetchLowStockProducts 
-} from "../../lib/data";
+import { fetchTopProducts, fetchTopCustomers, fetchLowStockProducts } from "../../lib/data";
 
 export default async function Page() {
     // Obtener sesion y verificar rol
@@ -36,10 +32,10 @@ export default async function Page() {
     return(
         <main>
             <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-                Dashboard Admin
+                Panel Admin - Bienvenido, {session?.user?.name || 'Admin'}!
             </h1>
             
-            {/* SECCIÓN DE RESUMEN (Tus Cards existentes) */}
+            {/* SECCIÓN DE RESUMEN (Cards existentes) */}
             {/*<h3 className={`${lusitana.className} text-xl mb-4`}>Resume Count</h3>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 bg-blue-200 p-4 rounded-lg">
                 <Suspense fallback={<CardSkeleton />}>
@@ -64,7 +60,7 @@ export default async function Page() {
                     </Suspense>
                  </div>*/}
 
-                 {/* NUEVO: PRODUCTOS MÁS VENDIDOS */}
+                 {/*PRODUCTOS MÁS VENDIDOS */}
                  <div className="rounded-xl bg-gray-50 p-4 shadow-sm">
                     <h3 className={`${lusitana.className} text-lg mb-3`}>Productos Top (Vendidos)</h3>
                     <div className="space-y-2">
@@ -77,7 +73,7 @@ export default async function Page() {
                     </div>
                  </div>
 
-                 {/* NUEVO: CLIENTES TOP */}
+                 {/*CLIENTES TOP */}
                  <div className="rounded-xl bg-gray-50 p-4 shadow-sm">
                     <h3 className={`${lusitana.className} text-lg mb-3`}>Clientes con Mayores Compras</h3>
                     <div className="space-y-2">
@@ -93,9 +89,9 @@ export default async function Page() {
                     </div>
                  </div>
 
-                 {/* NUEVO: STOCK BAJO */}
-                 <div className="rounded-xl bg-red-50 p-4 shadow-sm border border-red-100">
-                    <h3 className={`${lusitana.className} text-lg mb-3 text-red-700`}>Stock Bajo (Alertas)</h3>
+                 {/*STOCK */}
+                 <div className="rounded-xl bg-blue-50 p-4 shadow-sm border border-blue-100">
+                    <h3 className={`${lusitana.className} text-lg mb-4 font-bold text-gray-700`}>Nivel Stock</h3>
                     <div className="space-y-2">
                         {lowStockProducts.length === 0 ? (
                             <p className="text-sm text-gray-500">¡Inventario OK!</p>
@@ -103,7 +99,7 @@ export default async function Page() {
                             lowStockProducts.map((product, index) => (
                                 <div key={index} className="flex justify-between items-center text-sm border-b pb-2">
                                     <span>{product.nombre}</span>
-                                    <span className="font-bold text-red-600">{product.stock} restantes</span>
+                                    <span className="font-bold text-blue-600">{product.stock} restantes</span>
                                 </div>
                             ))
                         )}
