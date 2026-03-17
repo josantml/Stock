@@ -1,5 +1,6 @@
 import sql from './db';
 import {
+  Customer,
   CustomerField,
   CustomersTableType,
   InvoiceForm,
@@ -42,7 +43,7 @@ export async function fetchRevenue() {
 }
 
 
-const PRODUCT_PER_PAGE = 15;
+const PRODUCT_PER_PAGE = 18;
 
 export async function fetchProducts(currentPage: number) {
   const offset = (currentPage - 1) * PRODUCT_PER_PAGE;
@@ -81,6 +82,21 @@ export async function fetchCategories(): Promise<Categories[]> {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch categories');
     
+  }
+}
+
+
+export async function fetchCategoryById(id: string): Promise<Categories | null> {
+  try {
+    const data = await sql<Categories[]>`
+      SELECT id, name, slug, description
+      FROM categories
+      WHERE id = ${id}
+      `;
+    return data[0] || null;
+  } catch (error) {
+    console.error('Database error:', error);
+    throw new Error('Failed to fetch category by ID');
   }
 }
 
@@ -355,9 +371,9 @@ export async function fetchCustomers() {
 }
 
 
-export async function fetchAllCustomers() {
+export async function fetchAllCustomers(): Promise<Customer[]> {
   try {
-    const customers = await sql`
+    const customers = await sql<Customer[]>`
       SELECT
         id,
         name,

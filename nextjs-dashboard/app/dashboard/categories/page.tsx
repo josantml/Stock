@@ -3,7 +3,7 @@ import { fetchCategories } from '@/app/lib/data';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { auth } from '@/auth';
 import { CreateCategory } from '@/app/ui/invoices/buttons';
-import { DeleteCategory } from '@/app/ui/invoices/buttons';
+import { DeleteCategory, UpdateCategory } from '@/app/ui/invoices/buttons';
 
 
 export default async function PageCategory() {
@@ -42,7 +42,10 @@ export default async function PageCategory() {
                                         <td className='p-3 font-medium'>{category.name}</td>
                                         <td className='p-3 text-sm text-gray-500'>{category.slug}</td>
                                         <td className='p-3 text-sm text-gray-500 truncate max-w-xs'>{category.description || '-'}</td>
-                                        <td className='p-3 text-right space-x-2'><DeleteCategory id={category.id}/></td>
+                                        <td className='p-3 flex justify-end items-center space-x-2'>
+                                            <UpdateCategory id={category.id}/>
+                                            <DeleteCategory id={category.id}/>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

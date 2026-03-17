@@ -6,7 +6,7 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   ShoppingCartIcon,
-  CogIcon,
+  FolderIcon,
 } from '@heroicons/react/24/outline';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
@@ -47,6 +47,13 @@ const links: NavLink[] = [
     name: 'Clientes',
     href: '/dashboard/customers',
     icon: UserGroupIcon,
+    adminOnly: true,
+  },
+
+  {
+    name: 'Categorias',
+    href: '/dashboard/categories',
+    icon: FolderIcon,
     adminOnly: true,
   },
 

@@ -652,6 +652,55 @@ export async function createCategories(prevState: CategoryState, formData: FormD
 
 
 
+export async function updateCategory(id: string, prevState: CategoryState, formData: FormData): Promise<CategoryState>{
+        // ✓ Verificar que el usuario sea admin
+        try {
+            await requireAdmin();
+        } catch (error) {
+            return {
+                message: error instanceof Error ? error.message : 'Forbidden'
+            }
+        }
+
+            // Validar los datos del formulario
+            const validateCategories = CategorySchema.safeParse({
+                name: formData.get('name'),
+                description: formData.get('description')
+            });
+            
+            if(!validateCategories.success){
+                return {
+                    errors: validateCategories.error.flatten().fieldErrors,
+                    message: 'Validation Error: Fallo al actualizar la categoria. Verifique los valores.'
+                }
+            }
+
+            const {name, description} = validateCategories.data;
+            
+            // Generar slug a partir del nombre
+            const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+            // Actualizar la categoria en la base de datos
+            try {
+                await sql`
+                    UPDATE categories
+                    SET name = ${name},
+                    slug = ${slug},
+                    description = ${description ?? null}
+                    WHERE id = ${id}
+                `;
+            } catch (error) {
+                console.error('Error al actualizar la categoria:', error);
+                return { message: 'Error al actualizar la categoria en la BD.'};  
+            }
+
+            revalidatePath('/dashboard/categories');
+            revalidatePath('/shop'); // Actualiza la categoria en la tienda publica
+            return {message: 'Categoria actualizada correctamente'};
+}
+
+
+
 export async function deleteCategory(id: string) {
     // Verifica que el usuario se admin
 
@@ -678,6 +727,7 @@ export async function deleteCategory(id: string) {
     revalidatePath('/dashboard/categories');
     revalidatePath('/dashboard/products');
 }
+
 
 
 

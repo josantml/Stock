@@ -15,8 +15,8 @@ export type Customer = {
   name: string;
   email: string;
   image_url: string;
-  phone?: string;
-  address?: string;
+  phone: string | null;
+  address: string | null;
 };
 
 export type Invoice = {
