@@ -57,14 +57,16 @@ export default async function Page() {
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-4 py-20 text-center">
         <div className="flex justify-center mb-8">
-          <Image
-            src="/ROMA Mult. original.jpeg"
-            alt="Roma Multirubros"
-            width={300}
-            height={300}
-            priority
-            className="rounded-full"
-          />
+           <div className="bg-white p-6 rounded-2xl shadow-lg">
+              <Image
+                src="/ROMA Mult.jpeg"
+                alt="Roma Multirubros"
+                width={350}
+                height={200}
+                priority
+                className="object-contain"
+              />
+            </div>
         </div>
 
         <h1 className="text-5xl font-bold text-gray-900 mb-6">

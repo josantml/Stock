@@ -327,6 +327,7 @@ export async function registerUser(prevState: RegisterState, formData: FormData)
 
 
 
+
 export async function authenticate(prevState: string | undefined, formData: FormData) {
     try {
         const email = formData.get('email') as string;
@@ -1205,10 +1206,16 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
                     <tbody>
                         ${itemsHTML}
                     </tbody>
-                    <tfoot>
+                   <tfoot>
                         <tr>
-                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold;">TOTAL:</td>
-                            <td colspan="4" style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 1.2em;">$${order.total}</td>
+                            <td colspan="3"
+                                style="padding-top:15px;text-align:right;font-weight:bold;">
+                                TOTAL:
+                            </td>
+
+                            <td style="padding-top:15px;text-align:right;font-weight:bold;font-size:1.2em;">
+                                $${order.total}
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -1225,7 +1232,8 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
     try {
         const { data, error } = await ResendClient.emails.send({
             // OPCIÓN 1 (Recomendada): Usa tu dominio verificado en la opción from
-            from: 'ROMA Multirubros <onboarding@resend.dev>', // <--- Usar tu dominio + "noreply@" (o tu dirección genérica)
+            from: 'ROMA Multirubros <noreply@romamultirubro.com>',
+            //from: 'ROMA Multirubros <onboarding@resend.dev>',  // <--- Usar tu dominio + "noreply@" (o tu dirección genérica)
             // Al usar "noreply@", no necesitas crear un alias en Resend.
             
             // El destinatario (email del cliente)
@@ -1238,9 +1246,17 @@ export async function sendOrderEmail(prevState: any, formData: FormData): Promis
             html: emailHTML,
         });
 
-        if (error) {
+        /*if (error) {
             console.error('Error en el envío del email:', error);
             return { message: 'Error al enviar el mail' };
+        }*/
+
+        if (error) {
+            console.error('RESEND ERROR:', JSON.stringify(error, null, 2));
+
+            return {
+                message: `Error: ${error.message}`
+            };
         }
 
         console.log('Email enviado:', data);

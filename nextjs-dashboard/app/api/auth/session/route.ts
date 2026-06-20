@@ -11,3 +11,4 @@ export async function GET() {
   // Devolver la sesión completa (o null) con 200 para que `next-auth/react` la consuma correctamente
   return NextResponse.json(session ?? null);
 }
+

@@ -70,21 +70,22 @@ export async function generateTicketHTML(
             box-sizing: border-box;
         }
 
-        @page {
-            size: 80mm auto;
-            margin: 0;
+       @page {
+            size: A5 portrait;
+            margin: 10mm;
         }
 
         html, body {
-            width: 80mm;
+            width: 100%;
             margin: 0;
             padding: 0;
         }
         
         body {
             font-family: 'Courier New', monospace;
-            font-size: 9px; /* Reduje ligeramente el tamaño para que todo quepa */
+            /*font-size: 9px;*/ /* Reduje ligeramente el tamaño para que todo quepa */
             line-height: 1.4;
+            font-size: 11px;
         }
         
         .ticket {
@@ -100,9 +101,11 @@ export async function generateTicketHTML(
         }
         
         .store-name {
-            font-size: 14px;
-            font-weight: bold;
+            /*font-size: 14px;*/
+            /*font-weight: bold;*/
             margin-bottom: 2px;
+            font-size: 18px;
+            font-weight: bold;
         }
         
         .ticket-title {
@@ -172,27 +175,31 @@ export async function generateTicketHTML(
         
         .item-name {
             flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow: visible;
+            /*text-overflow: ellipsis;*/
             padding-right: 2px; /* Espacio pequeño a la derecha del nombre */
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
         }
         
         .item-price {
-            width: 50px; /* Ancho fijo para Precio Unitario */
+           /* width: 50px; */ /* Ancho fijo para Precio Unitario */
             text-align: right;
             margin-right: 4px;
             font-weight: bold;
+            width: 80px;
         }
 
         .item-qty {
-            width: 30px; /* Ancho fijo para Cantidad */
+            /*width: 30px;*/ /* Ancho fijo para Cantidad */
             text-align: right;
+            width: 60px;
         }
         
         .item-total {
-            width: 40px; /* Ancho fijo para Subtotal */
+            /*width: 40px;*/ /* Ancho fijo para Subtotal */
             text-align: right;
+            width: 80px;
         }
         
         .total-section {
@@ -229,6 +236,24 @@ export async function generateTicketHTML(
         .footer-text {
             font-size: 8px;
         }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .logo {
+            /*width: 80px;
+            height: auto;*/
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 8px auto;
+        }
         
         @media print {
             body {
@@ -244,7 +269,18 @@ export async function generateTicketHTML(
 <body>
     <div class="ticket" id="ticket">
         <div class="header">
+
+        <div class="header-brand">
+            <img
+                src="/ROMA Mult.jpeg"
+                alt= "ROMA Multirubro"
+                class= "logo"
+             />
+
             <div class="store-name">${storeName}</div>
+        </div>
+            
+
             <div class="ticket-title">PRESUPUESTO</div>
             <div class="ticket-id">ID Orden: ${orderId.slice(0, 8)}</div>
             <div class="ticket-datetime">${fecha} ${hora}</div>
@@ -269,7 +305,7 @@ export async function generateTicketHTML(
               .map(
                 (item) => `
                 <div class="item">
-                    <div class="item-name">${item.product_name.substring(0, 20)}</div>
+                    <div class="item-name">${item.product_name.substring(0, 60)}</div>
                     <div class="item-price">$${(item.price / 100).toFixed(2)}</div>
                     <div class="item-qty">${item.quantity}</div>
                     <div class="item-total">$${(item.subtotal / 100).toFixed(2)}</div>

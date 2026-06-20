@@ -25,8 +25,16 @@ const links: NavLink[] = [
     icon: DocumentDuplicateIcon,
     adminOnly: true,
   },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon, adminOnly: true },
-  { name: 'Products', href: '/dashboard/products', icon: DocumentDuplicateIcon, adminOnly: true },
+  { name: 'Customers', 
+    href: '/dashboard/customers', 
+    icon: UserGroupIcon,
+    adminOnly: true 
+  },
+  { name: 'Products', 
+    href: '/dashboard/products', 
+    icon: DocumentDuplicateIcon, 
+    adminOnly: true 
+  },
 ];
 
 export default function NavLinks() {
