@@ -70,122 +70,166 @@ export async function generateTicketHTML(
             box-sizing: border-box;
         }
 
-        /* MÁRGENES REDUCIDOS: Cambiado a 8mm (anteriores eran 15mm) */
+        /* ============================================
+           CONFIGURACIÓN DE PÁGINA A4
+           A4 = 210mm x 297mm
+           ============================================ */
         @page {
             size: A4 portrait;
-            margin: 8mm; 
+            margin: 10mm;
         }
 
-        html, body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
+        html {
+            width: 210mm; /* ✅ ANCHO FIJO A4 */
+            min-height: 297mm;
         }
         
         /* LETRA AGRANDADA: Base subida a 16px */
         body {
-            font-family: 'Courier New', monospace;
+            /* ✅ FORZAR OCUPAR ANCHO COMPLETO */
+            width: 190mm; /* 210mm - 10mm margen izq - 10mm margen der */
+            min-width: 190mm;
+            max-width: 190mm;
+            margin: 0;
+            padding: 0;
+            
+            /* ✅ DESACTIVAR SHRINK-TO-FIT */
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            
+            /* Fuente más profesional que aprovecha el espacio */
+            font-family: 'Arial', 'Helvetica', sans-serif;
             line-height: 1.5;
-            font-size: 16px; 
+            font-size: 16px;
+            color: #000;
         }
         
         .ticket {
-            width: 100%; 
+            width: 100%;
+            min-width: 190mm; /* ✅ FORZAR ANCHO MÍNIMO */
             padding: 0;
-            margin: 0 auto;
+            margin: 0;
         }
         
+        /* ============================================
+           HEADER
+           ============================================ */
+
         .header {
-            text-align: center;
             border-bottom: 2px dashed #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .header-brand {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 10px;
+            justify-content: flex-start; /* ✅ CAMBIO: alineado a la izquierda */
+            gap: 25px;
+            margin-bottom: 15px;
         }
 
         .logo {
-            width: 80px; /* Logo ligeramente más grande */
-            height: 80px;
+            width: 130px; /* ✅ CAMBIO: logo más grande (era 80px) */
+            height: 130px;
             object-fit: contain;
             display: block;
+            flex-shrink: 0; /* ✅ Evitar que el logo se encoja */
         }
 
         .store-name {
-            font-size: 32px; /* Agrandado */
+            font-size: 36px;
             font-weight: bold;
+            text-align: left; /* ✅ NUEVO: texto del nombre alineado a la izquierda */
+            line-height: 1.2;
+        }
+
+        .header-info {
+            text-align: left; /* ✅ Info del header a la izquierda */
+            padding-left: 145px; /* Alineado con el texto del nombre */
         }
         
         .ticket-title {
-            font-size: 16px; /* Agrandado */
-            margin-bottom: 5px;
+            font-size: 20px; /* Agrandado */
+            font-weight: bold;
+            margin-bottom: 8px;
         }
         
         .ticket-id, .ticket-datetime {
-            font-size: 14px; /* Agrandado */
-            margin-bottom: 3px;
+            font-size: 15px;
+            margin-bottom: 4px;
         }
 
         .ticket-warning {
-            font-size: 13px; /* Agrandado */
-            margin-top: 5px;
+            font-size: 14px;
+            margin-top: 8px;
             font-style: italic;
+            color: #333;
         }
+
+         /* ============================================
+           SECCIÓN CLIENTE
+           ============================================ */
         
         .client-section {
             border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .section-title {
             font-weight: bold;
-            font-size: 16px; /* Agrandado */
-            margin-bottom: 5px;
+            font-size: 18px;
+            margin-bottom: 8px;
         }
         
         .client-name {
             font-size: 16px; /* Agrandado */
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
         
         .client-email {
-            font-size: 14px; /* Agrandado */
+            font-size: 15px; /* Agrandado */
             word-break: break-all;
         }
+
+         /* ============================================
+           TABLA DE ITEMS - OCUPA ANCHO COMPLETO
+           ============================================ */
         
         .items-section {
             border-bottom: 1px dashed #000;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         /* El grid se sigue adaptando automáticamente al nuevo ancho */
         .items-header, .item {
             display: grid;
-            grid-template-columns: 3fr 1.5fr 1fr 1.5fr; 
-            gap: 15px;
-            align-items: start;
-            padding: 5px 0;
+            /* ✅ COLUMNAS QUE OCUPAN TODO EL ANCHO */
+            grid-template-columns: 1fr 120px 80px 140px; 
+            gap: 10px;
+            align-items: center;
+            padding: 8px 0;
+            width: 100%;
         }
 
         .items-header {
             font-weight: bold;
-            border-bottom: 1px solid #000;
+            border-bottom: 2px solid #000;
             margin-bottom: 5px;
-            font-size: 16px; /* Agrandado */
+            font-size: 16px;
+            padding-bottom: 10px;
+        }
+
+        .item {
+            border-bottom: 1px dotted #ccc;
         }
         
         .item-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: 16px; /* Agrandado */
+            font-size: 16px;
+            /* ✅ PERMITIR QUE EL TEXTO SE EXPANDA */
+            white-space: normal;
+            word-wrap: break-word;
         }
         
         .item-price {
@@ -203,68 +247,98 @@ export async function generateTicketHTML(
             font-weight: bold;
             font-size: 16px; /* Agrandado */
         }
+
+
+        /* ============================================
+           TOTAL
+           ============================================ */
         
         .total-section {
             display: flex;
-            justify-content: flex-end; 
+            justify-content: flex-end;
             align-items: center;
-            gap: 20px;
+            gap: 25px;
             text-align: right;
-            padding: 15px 0;
+            padding: 20px 0;
             border-bottom: 2px dashed #000;
             border-top: 2px dashed #000;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .total-label {
             font-weight: bold;
-            font-size: 20px; /* Agrandado */
+            font-size: 22px;
         }
         
         .total-amount {
-            font-size: 28px; /* Agrandado significativamente para resaltar */
+            font-size: 32px;
             font-weight: bold;
             color: #000;
         }
+
+         /* ============================================
+           FOOTER
+           ============================================ */
         
         .footer {
             text-align: center;
-            font-size: 14px; /* Agrandado */
-            padding-top: 15px;
+            font-size: 15px;
+            padding-top: 20px;
         }
         
         .thank-you {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
-            font-size: 18px; /* Agrandado */
+            font-size: 20px;
         }
         
         .footer-text {
-            font-size: 13px; /* Agrandado */
+            font-size: 14px;
+            color: #555;
         }
 
-        /* === PARA IMPRIMIR === */
+        /* ============================================
+           ESTILOS ESPECÍFICOS PARA IMPRESIÓN
+           ============================================ */
+
         @media print {
             /* MÁRGENES REDUCIDOS también en la vista de impresión */
             @page {
                 size: A4 portrait;
-                margin: 8mm; 
+                margin: 10mm;
             }
             
-            html, body {
-                width: 100% !important;
+            html {
+                width: 210mm !important;
+            }
+
+
+            body {
+                width: 190mm !important;
+                min-width: 190mm !important;
+                max-width: 190mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                /* ✅ BLOQUEAR CUALQUIER ESCALA DEL NAVEGADOR */
+                transform: none !important;
+                -webkit-transform: none !important;
+                zoom: 1 !important;
             }
             
             .ticket {
                 width: 100% !important;
-                padding: 0 !important;
+                min-width: 190mm !important;
             }
 
             .item {
                 page-break-inside: avoid;
                 break-inside: avoid;
+            }
+
+            /* ✅ EVITAR QUE EL NAVEGADOR AJUSTE EL CONTENIDO */
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
             }
         }
     </style>
@@ -273,21 +347,22 @@ export async function generateTicketHTML(
     <div class="ticket" id="ticket">
         <div class="header">
 
-        <div class="header-brand">
-            <img
-                src="/ROMA Mult.jpeg"
-                alt= "ROMA Multirubro"
-                class= "logo"
-             />
+            <div class="header-brand">
+                <img
+                    src="/ROMA Mult.jpeg"
+                    alt="ROMA Multirubro"
+                    class="logo"
+                />
+                <div class="store-name">${storeName}</div>
+            </div>
 
-            <div class="store-name">${storeName}</div>
-        </div>
-            
+            <div class="header-info">
+                <div class="ticket-title">PRESUPUESTO</div>
+                <div class="ticket-id">ID Orden: ${orderId.slice(0, 8)}</div>
+                <div class="ticket-datetime">${fecha} ${hora}</div>
+                <div class="ticket-warning">"Presupuesto no valido como factura"</div>
+            </div>
 
-            <div class="ticket-title">PRESUPUESTO</div>
-            <div class="ticket-id">ID Orden: ${orderId.slice(0, 8)}</div>
-            <div class="ticket-datetime">${fecha} ${hora}</div>
-            <div class="ticket-warning">"Presupuesto no valido como factura"</div>
         </div>
         
         <div class="client-section">
@@ -298,7 +373,7 @@ export async function generateTicketHTML(
         
         <div class="items-section">
             <div class="items-header">
-                <div style="flex:1;">Descripción</div>
+                <div class="item-name">Descripción</div>
                 <div class="item-price">Precio U.</div>
                 <div class="item-qty">Cant.</div>
                 <div class="item-total">Total</div>
@@ -308,10 +383,10 @@ export async function generateTicketHTML(
               .map(
                 (item) => `
                 <div class="item">
-                    <div class="item-name">${item.product_name.substring(0, 60)}</div>
-                    <div class="item-price">$${(item.price).toFixed(2)}</div>
+                    <div class="item-name">${item.product_name}</div>
+                    <div class="item-price">$${item.price.toFixed(2)}</div>
                     <div class="item-qty">${item.quantity}</div>
-                    <div class="item-total">$${(item.subtotal).toFixed(2)}</div>
+                    <div class="item-total">$${item.subtotal.toFixed(2)}</div>
                 </div>
             `
               )
@@ -320,7 +395,7 @@ export async function generateTicketHTML(
         
         <div class="total-section">
             <div class="total-label">TOTAL:</div>
-            <div class="total-amount">$${(orderData.total).toFixed(2)}</div>
+            <div class="total-amount">$${orderData.total.toFixed(2)}</div>
         </div>
         
         <div class="footer">
