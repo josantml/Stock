@@ -64,207 +64,210 @@ export async function generateTicketHTML(
     <meta charset="UTF-8">
     <title>Ticket ${orderId.slice(0, 8)}</title>
     <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Forzar A4 */
-    @page {
-        size: A4 portrait;
-        margin: 15mm; /* Un poco más de margen para A4 */
-    }
-
-    html, body {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    
-    body {
-        font-family: 'Courier New', monospace;
-        line-height: 1.5; /* Un poco más de separación para A4 */
-        font-size: 14px; /* Aumentado de 11px para que se lea bien en A4 */
-    }
-    
-    .ticket {
-        width: 100%; /* Ocupa todo el ancho disponible */
-        padding: 0;
-        margin: 0 auto;
-    }
-    
-    .header {
-        text-align: center;
-        border-bottom: 2px dashed #000;
-        padding-bottom: 10px;
-        margin-bottom: 15px;
-    }
-    
-    .header-brand {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 20px; /* Más separación entre logo y nombre */
-        margin-bottom: 10px;
-    }
-
-    .logo {
-        width: 70px; /* Logo un poco más grande */
-        height: 70px;
-        object-fit: contain;
-        display: block;
-    }
-
-    .store-name {
-        font-size: 28px; /* Aumentado para A4 */
-        font-weight: bold;
-    }
-    
-    .ticket-title {
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-    
-    .ticket-id, .ticket-datetime {
-        font-size: 12px;
-        margin-bottom: 3px;
-    }
-
-    .ticket-warning {
-        font-size: 11px;
-        margin-top: 5px;
-        font-style: italic;
-    }
-    
-    .client-section {
-        border-bottom: 1px dashed #000;
-        padding-bottom: 10px;
-        margin-bottom: 15px;
-    }
-    
-    .section-title {
-        font-weight: bold;
-        font-size: 13px;
-        margin-bottom: 5px;
-    }
-    
-    .client-name {
-        font-size: 13px;
-        margin-bottom: 3px;
-    }
-    
-    .client-email {
-        font-size: 12px;
-        word-break: break-all;
-    }
-    
-    .items-section {
-        border-bottom: 1px dashed #000;
-        margin-bottom: 15px;
-    }
-    
-    /* --- EL CAMBIO MÁS IMPORTANTE ESTÁ AQUÍ (EL GRID) --- */
-    .items-header, .item {
-        display: grid;
-        /* En lugar de píxeles fijos, usamos "fr" (fracciones) para que se estire */
-        /* 3 partes para nombre, 1.5 para precio, 1 para cantidad, 1.5 para total */
-        grid-template-columns: 3fr 1.5fr 1fr 1.5fr; 
-        gap: 15px;
-        align-items: start;
-        padding: 4px 0;
-    }
-
-    .items-header {
-        font-weight: bold;
-        border-bottom: 1px solid #000;
-        margin-bottom: 5px;
-    }
-    
-    .item-name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    /* Eliminamos los width: 80px fijos y dejamos que el grid controle el ancho */
-    .item-price {
-        text-align: right;
-    }
-
-    .item-qty {
-        text-align: center; /* Centrado en A4 se ve mejor para la cantidad */
-    }
-    
-    .item-total {
-        text-align: right;
-        font-weight: bold;
-    }
-    
-    .total-section {
-        display: flex;
-        justify-content: flex-end; /* Empuja el total hacia la derecha */
-        align-items: center;
-        gap: 20px;
-        text-align: right;
-        padding: 15px 0;
-        border-bottom: 2px dashed #000;
-        border-top: 2px dashed #000;
-        margin-bottom: 20px;
-    }
-    
-    .total-label {
-        font-weight: bold;
-        font-size: 16px;
-    }
-    
-    .total-amount {
-        font-size: 22px; /* Total grande y visible */
-        font-weight: bold;
-        color: #000;
-    }
-    
-    .footer {
-        text-align: center;
-        font-size: 12px;
-        padding-top: 15px;
-    }
-    
-    .thank-you {
-        margin-bottom: 5px;
-        font-weight: bold;
-        font-size: 14px;
-    }
-    
-    .footer-text {
-        font-size: 11px;
-    }
-
-    /* === PARA IMPRIMIR === */
-    @media print {
+        /* MÁRGENES REDUCIDOS: Cambiado a 8mm (anteriores eran 15mm) */
         @page {
             size: A4 portrait;
-            margin: 15mm;
+            margin: 8mm; 
+        }
+
+        html, body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
         
-        html, body {
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
+        /* LETRA AGRANDADA: Base subida a 16px */
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+            font-size: 16px; 
         }
         
         .ticket {
-            width: 100% !important;
-            padding: 0 !important;
+            width: 100%; 
+            padding: 0;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .header-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
         }
 
-        /* Evitar que un producto se corte feo al saltar de página */
-        .item {
-            page-break-inside: avoid;
-            break-inside: avoid;
+        .logo {
+            width: 80px; /* Logo ligeramente más grande */
+            height: 80px;
+            object-fit: contain;
+            display: block;
         }
-    }
-</style>
+
+        .store-name {
+            font-size: 32px; /* Agrandado */
+            font-weight: bold;
+        }
+        
+        .ticket-title {
+            font-size: 16px; /* Agrandado */
+            margin-bottom: 5px;
+        }
+        
+        .ticket-id, .ticket-datetime {
+            font-size: 14px; /* Agrandado */
+            margin-bottom: 3px;
+        }
+
+        .ticket-warning {
+            font-size: 13px; /* Agrandado */
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .client-section {
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            font-size: 16px; /* Agrandado */
+            margin-bottom: 5px;
+        }
+        
+        .client-name {
+            font-size: 16px; /* Agrandado */
+            margin-bottom: 3px;
+        }
+        
+        .client-email {
+            font-size: 14px; /* Agrandado */
+            word-break: break-all;
+        }
+        
+        .items-section {
+            border-bottom: 1px dashed #000;
+            margin-bottom: 15px;
+        }
+        
+        /* El grid se sigue adaptando automáticamente al nuevo ancho */
+        .items-header, .item {
+            display: grid;
+            grid-template-columns: 3fr 1.5fr 1fr 1.5fr; 
+            gap: 15px;
+            align-items: start;
+            padding: 5px 0;
+        }
+
+        .items-header {
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+            font-size: 16px; /* Agrandado */
+        }
+        
+        .item-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 16px; /* Agrandado */
+        }
+        
+        .item-price {
+            text-align: right;
+            font-size: 16px; /* Agrandado */
+        }
+
+        .item-qty {
+            text-align: center;
+            font-size: 16px; /* Agrandado */
+        }
+        
+        .item-total {
+            text-align: right;
+            font-weight: bold;
+            font-size: 16px; /* Agrandado */
+        }
+        
+        .total-section {
+            display: flex;
+            justify-content: flex-end; 
+            align-items: center;
+            gap: 20px;
+            text-align: right;
+            padding: 15px 0;
+            border-bottom: 2px dashed #000;
+            border-top: 2px dashed #000;
+            margin-bottom: 20px;
+        }
+        
+        .total-label {
+            font-weight: bold;
+            font-size: 20px; /* Agrandado */
+        }
+        
+        .total-amount {
+            font-size: 28px; /* Agrandado significativamente para resaltar */
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 14px; /* Agrandado */
+            padding-top: 15px;
+        }
+        
+        .thank-you {
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 18px; /* Agrandado */
+        }
+        
+        .footer-text {
+            font-size: 13px; /* Agrandado */
+        }
+
+        /* === PARA IMPRIMIR === */
+        @media print {
+            /* MÁRGENES REDUCIDOS también en la vista de impresión */
+            @page {
+                size: A4 portrait;
+                margin: 8mm; 
+            }
+            
+            html, body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .ticket {
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="ticket" id="ticket">
