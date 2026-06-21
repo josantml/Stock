@@ -70,7 +70,7 @@ export async function generateTicketHTML(
             box-sizing: border-box;
         }
 
-       @page {
+        @page {
             size: A5 portrait;
             margin: 10mm;
         }
@@ -83,14 +83,15 @@ export async function generateTicketHTML(
         
         body {
             font-family: 'Courier New', monospace;
-            /*font-size: 9px;*/ /* Reduje ligeramente el tamaño para que todo quepa */
             line-height: 1.4;
             font-size: 11px;
         }
         
         .ticket {
             width: 100%;
-            padding: 5px; /* Padding ajustado */
+            max-width: 128mm; /* Asegura que no exceda el área útil del A5 */
+            padding: 0;
+            margin: 0 auto;
         }
         
         .header {
@@ -156,30 +157,23 @@ export async function generateTicketHTML(
         }
         
         .items-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 9px;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #000;
-            margin-bottom: 4px;
+            display: grid;
+            grid-template-columns: 1fr 80px 50px 80px; /* flexible, precio, cant, total */
+            gap: 4px;
+            align-items: start;
         }
         
         .item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 9px;
-            padding: 1px 0;
-            border-bottom: 1px dotted #ccc;
+            display: grid;
+            grid-template-columns: 1fr 80px 50px 80px; /* flexible, precio, cant, total */
+            gap: 4px;
+            align-items: start;
         }
         
         .item-name {
-            flex: 1;
-            overflow: visible;
-            /*text-overflow: ellipsis;*/
-            padding-right: 2px; /* Espacio pequeño a la derecha del nombre */
-            white-space: normal;
-            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .item-price {
@@ -255,13 +249,23 @@ export async function generateTicketHTML(
             margin: 0 auto 8px auto;
         }
         
+     /* === FORZAR A5 AL IMPRIMIR === */
         @media print {
-            body {
-                margin: 0;
-                padding: 0;
+            @page {
+                size: A5 portrait;
+                margin: 10mm;
             }
+            
+            html, body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
             .ticket {
-                padding: 0;
+                width: 100% !important;
+                max-width: none !important;
+                padding: 0 !important;
             }
         }
     </style>
@@ -306,9 +310,9 @@ export async function generateTicketHTML(
                 (item) => `
                 <div class="item">
                     <div class="item-name">${item.product_name.substring(0, 60)}</div>
-                    <div class="item-price">$${(item.price / 100).toFixed(2)}</div>
+                    <div class="item-price">$${(item.price).toFixed(2)}</div>
                     <div class="item-qty">${item.quantity}</div>
-                    <div class="item-total">$${(item.subtotal / 100).toFixed(2)}</div>
+                    <div class="item-total">$${(item.subtotal).toFixed(2)}</div>
                 </div>
             `
               )
@@ -317,7 +321,7 @@ export async function generateTicketHTML(
         
         <div class="total-section">
             <div class="total-label">TOTAL:</div>
-            <div class="total-amount">$${(orderData.total / 100).toFixed(2)}</div>
+            <div class="total-amount">$${(orderData.total).toFixed(2)}</div>
         </div>
         
         <div class="footer">
