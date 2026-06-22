@@ -7,7 +7,7 @@ import CartUI from './components/cart/CartUI';
 
 export const metadata: Metadata = {
   icons: {
-    icon: '/favicon2.png',
+    icon: '/Logo_Roma.png',
   },
   title: {
     template: '%s | Pablo Dashboard',

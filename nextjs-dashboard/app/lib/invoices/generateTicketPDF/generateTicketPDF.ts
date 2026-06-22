@@ -4,6 +4,8 @@ interface OrderData {
   id: string;
   customer_name: string;
   customer_email: string;
+  customer_phone: string | null;
+  customer_address: string | null;
   total: number;
   created_at: string;
 }
@@ -22,9 +24,17 @@ export async function generateTicketHTML(
   try {
     // Obtener datos de la orden
     const [orderData] = await sql<OrderData[]>`
-      SELECT id, customer_name, customer_email, total, created_at
-      FROM orders
-      WHERE id = ${orderId}
+      SELECT o.id, 
+        o.customer_name, 
+        o.customer_email, 
+        c.phone as customer_phone, 
+        c.address as customer_address, 
+        o.total, 
+        o.created_at
+      FROM orders o
+      LEFT JOIN customers c
+      ON c.id = o.customer_id
+      WHERE o.id = ${orderId}
     `;
 
     if (!orderData) {
@@ -126,23 +136,23 @@ export async function generateTicketHTML(
             display: flex;
             align-items: center;
             justify-content: flex-start; /* ✅ CAMBIO: alineado a la izquierda */
-            gap: 25px;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 10px;
         }
 
         .logo {
-            width: 130px; /* ✅ CAMBIO: logo más grande (era 80px) */
-            height: 130px;
+            width: 220px; /* ✅ CAMBIO: logo más grande (era 80px) */
+            height: 220px;
             object-fit: contain;
             display: block;
             flex-shrink: 0; /* ✅ Evitar que el logo se encoja */
         }
 
         .store-name {
-            font-size: 36px;
+            font-size: 30px;
             font-weight: bold;
             text-align: left; /* ✅ NUEVO: texto del nombre alineado a la izquierda */
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .header-info {
@@ -176,6 +186,29 @@ export async function generateTicketHTML(
             border-bottom: 1px dashed #000;
             padding-bottom: 15px;
             margin-bottom: 20px;
+        }
+
+        .business-client-section{
+            display:flex;
+            justify-content:space-between;
+            gap:40px;
+            margin-bottom:20px;
+            padding-bottom:15px;
+            border-bottom:1px dashed #000;
+        }
+
+        .business-data,
+        .client-data{
+            flex:1;
+            border: 1px solid #000;
+            padding: 12px; 
+            border-radius: 4px;
+        }
+
+        .business-data div,
+        .client-data div{
+            margin-bottom:6px;
+            font-size:15px;
         }
         
         .section-title {
@@ -358,18 +391,49 @@ export async function generateTicketHTML(
             </div>
 
             <div class="header-info">
-                <div class="ticket-title">PRESUPUESTO</div>
-                <div class="ticket-id">ID Orden: ${orderId.slice(0, 8)}</div>
+                <div class="ticket-title">
+                    PRESUPUESTO Nº ${orderId.slice(0, 8).toUpperCase()}
+                </div>
                 <div class="ticket-datetime">${fecha} ${hora}</div>
                 <div class="ticket-warning">"Presupuesto no valido como factura"</div>
             </div>
 
         </div>
         
+        <!-- 
         <div class="client-section">
             <div class="section-title">CLIENTE:</div>
             <div class="client-name">${orderData.customer_name || 'GUEST'}</div>
             <div class="client-email">${orderData.customer_email || '---'}</div>
+        </div> 
+        -->
+
+        <div class="business-client-section">
+            <div class="business-data">
+
+                <div class="section-title"> DATOS DEL COMERCIO </div>
+
+                <div><strong>Razon Social:</strong> ROMA Multirubro</div>
+
+                <div><strong>Domicilio:</strong>San Lorenzo 764 </div>
+
+                <div><strong>Telefono:</strong> 3454XXXXX </div>
+
+            </div>
+
+            <div class="client-data">
+
+                <div class="section-title"> DATOS DEL CLIENTE </div>
+
+                <div><strong>Nombre:</strong>${orderData.customer_name}</div>
+
+                <div><strong>Email:</strong>${orderData.customer_email || '---'}</div>
+
+                <div><strong>Telefono:</strong>${orderData.customer_phone || '---'}</div>
+
+                <div><strong>Domicilio:</strong>${orderData.customer_address || '---'}</div>
+
+            </div>
         </div>
         
         <div class="items-section">
