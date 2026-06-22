@@ -16,12 +16,12 @@ export default function ShopHeader() {
         <div className="bg-white shadow-sm border-b">
             <div className="max-w-6xl mx-auto px-4 py-6">
                 <div className="flex justify-between items-center">
-                    <Link href="/" className="text-2xl font-bold text-blue-600 flex items-center gap-2">
+                    <Link href="/" className="text-2xl font-bold text-blue-600 flex items-center gap-4">
                     <Image
                         src="/ROMA Mult.jpeg"
                         alt="Logo ROMA"
-                        width={40}
-                        height={40}
+                        width={80}
+                        height={80}
                     />
                         <span>ROMA Multirubros</span>
                     </Link>
