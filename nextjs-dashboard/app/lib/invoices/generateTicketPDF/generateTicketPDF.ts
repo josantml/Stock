@@ -130,14 +130,19 @@ export async function generateTicketHTML(
             border-bottom: 2px dashed #000;
             padding-bottom: 15px;
             margin-bottom: 20px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .header-brand {
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* ✅ CAMBIO: alineado a la izquierda */
+            justify-content: center;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            width: 100%;
         }
 
         .logo {
@@ -152,12 +157,11 @@ export async function generateTicketHTML(
             font-size: 30px;
             font-weight: bold;
             text-align: left; /* ✅ NUEVO: texto del nombre alineado a la izquierda */
-            line-height: 1.1;
         }
 
         .header-info {
-            text-align: left; /* ✅ Info del header a la izquierda */
-            padding-left: 145px; /* Alineado con el texto del nombre */
+            text-align: center;
+            width: 100%;
         }
         
         .ticket-title {
