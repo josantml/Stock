@@ -81,34 +81,24 @@ export async function generateTicketHTML(
             box-sizing: border-box;
         }
 
-        /* ============================================
-           CONFIGURACIÓN DE PÁGINA A4
-           A4 = 210mm x 297mm
-           ============================================ */
         @page {
             size: A4 portrait;
             margin: 10mm;
         }
 
         html {
-            width: 210mm; /* ✅ ANCHO FIJO A4 */
+            width: 210mm;
             min-height: 297mm;
         }
         
-        /* LETRA AGRANDADA: Base subida a 16px */
         body {
-            /* ✅ FORZAR OCUPAR ANCHO COMPLETO */
-            width: 190mm; /* 210mm - 10mm margen izq - 10mm margen der */
+            width: 190mm;
             min-width: 190mm;
             max-width: 190mm;
             margin: 0;
             padding: 0;
-            
-            /* ✅ DESACTIVAR SHRINK-TO-FIT */
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
-            
-            /* Fuente más profesional que aprovecha el espacio */
             font-family: 'Arial', 'Helvetica', sans-serif;
             line-height: 1.5;
             font-size: 16px;
@@ -117,7 +107,7 @@ export async function generateTicketHTML(
         
         .ticket {
             width: 100%;
-            min-width: 190mm; /* ✅ FORZAR ANCHO MÍNIMO */
+            min-width: 190mm;
             padding: 0;
             margin: 0;
         }
@@ -130,68 +120,55 @@ export async function generateTicketHTML(
             border-bottom: 2px dashed #000;
             padding-bottom: 15px;
             margin-bottom: 20px;
-
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         
         .header-brand {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
+            align-items: center; /* ✅ Centra verticalmente el logo y el texto */
+            gap: 30px; /* ✅ Espacio horizontal entre el logo y el texto */
             width: 100%;
         }
 
         .logo {
-            width: 220px; /* ✅ CAMBIO: logo más grande (era 80px) */
-            height: 220px;
+            width: 250px;
+            height: 250px;
             object-fit: contain;
             display: block;
-            flex-shrink: 0; /* ✅ Evitar que el logo se encoja */
+            flex-shrink: 0;
         }
 
-        .store-name {
-            font-size: 30px;
-            font-weight: bold;
-            text-align: left; /* ✅ NUEVO: texto del nombre alineado a la izquierda */
+        /* ✅ NUEVO: Contenedor para agrupar todo el texto a la derecha */
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px; /* Espacio entre el título, la fecha y la leyenda */
+            border-left: 2px solid #000; /* ✅ Opcional: Una línea separadora visual que queda muy profesional */
+            padding-left: 30px;
         }
 
-        .header-info {
-            text-align: center;
-            width: 100%;
-        }
-        
         .ticket-title {
-            font-size: 20px; /* Agrandado */
+            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 8px;
+            line-height: 1.1;
         }
-        
-        .ticket-id, .ticket-datetime {
-            font-size: 15px;
-            margin-bottom: 4px;
+
+        .ticket-datetime {
+            font-size: 18px;
+            font-weight: 500;
         }
 
         .ticket-warning {
             font-size: 14px;
-            margin-top: 8px;
             font-style: italic;
             color: #333;
+            margin-top: 5px;
         }
 
          /* ============================================
            SECCIÓN CLIENTE
            ============================================ */
         
-        .client-section {
-            border-bottom: 1px dashed #000;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
         .business-client-section{
             display:flex;
             justify-content:space-between;
@@ -220,19 +197,9 @@ export async function generateTicketHTML(
             font-size: 18px;
             margin-bottom: 8px;
         }
-        
-        .client-name {
-            font-size: 16px; /* Agrandado */
-            margin-bottom: 4px;
-        }
-        
-        .client-email {
-            font-size: 15px; /* Agrandado */
-            word-break: break-all;
-        }
 
          /* ============================================
-           TABLA DE ITEMS - OCUPA ANCHO COMPLETO
+           TABLA DE ITEMS
            ============================================ */
         
         .items-section {
@@ -240,10 +207,8 @@ export async function generateTicketHTML(
             margin-bottom: 20px;
         }
         
-        /* El grid se sigue adaptando automáticamente al nuevo ancho */
         .items-header, .item {
             display: grid;
-            /* ✅ COLUMNAS QUE OCUPAN TODO EL ANCHO */
             grid-template-columns: 1fr 120px 80px 140px; 
             gap: 10px;
             align-items: center;
@@ -265,27 +230,25 @@ export async function generateTicketHTML(
         
         .item-name {
             font-size: 16px;
-            /* ✅ PERMITIR QUE EL TEXTO SE EXPANDA */
             white-space: normal;
             word-wrap: break-word;
         }
         
         .item-price {
             text-align: right;
-            font-size: 16px; /* Agrandado */
+            font-size: 16px;
         }
 
         .item-qty {
             text-align: center;
-            font-size: 16px; /* Agrandado */
+            font-size: 16px;
         }
         
         .item-total {
             text-align: right;
             font-weight: bold;
-            font-size: 16px; /* Agrandado */
+            font-size: 16px;
         }
-
 
         /* ============================================
            TOTAL
@@ -336,11 +299,10 @@ export async function generateTicketHTML(
         }
 
         /* ============================================
-           ESTILOS ESPECÍFICOS PARA IMPRESIÓN
+           IMPRESIÓN
            ============================================ */
 
         @media print {
-            /* MÁRGENES REDUCIDOS también en la vista de impresión */
             @page {
                 size: A4 portrait;
                 margin: 10mm;
@@ -350,14 +312,12 @@ export async function generateTicketHTML(
                 width: 210mm !important;
             }
 
-
             body {
                 width: 190mm !important;
                 min-width: 190mm !important;
                 max-width: 190mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                /* ✅ BLOQUEAR CUALQUIER ESCALA DEL NAVEGADOR */
                 transform: none !important;
                 -webkit-transform: none !important;
                 zoom: 1 !important;
@@ -373,7 +333,6 @@ export async function generateTicketHTML(
                 break-inside: avoid;
             }
 
-            /* ✅ EVITAR QUE EL NAVEGADOR AJUSTE EL CONTENIDO */
             @page {
                 size: A4 portrait;
                 margin: 10mm;
@@ -383,60 +342,39 @@ export async function generateTicketHTML(
 </head>
 <body>
     <div class="ticket" id="ticket">
+        
+        <!-- ✅ CAMBIO PRINCIPAL AQUÍ: Todo junto en el mismo nivel flex -->
         <div class="header">
-
             <div class="header-brand">
                 <img
                     src="/ROMA Mult.jpeg"
                     alt="ROMA Multirubro"
                     class="logo"
                 />
-                <div class="store-name">${storeName}</div>
-            </div>
-
-            <div class="header-info">
-                <div class="ticket-title">
-                    PRESUPUESTO Nº ${orderId.slice(0, 8).toUpperCase()}
+                
+                <div class="header-text">
+                    <div class="ticket-title">PRESUPUESTO Nº ${orderId.slice(0, 8).toUpperCase()}</div>
+                    <div class="ticket-datetime">${fecha} ${hora}</div>
+                    <div class="ticket-warning">"Presupuesto no valido como factura"</div>
                 </div>
-                <div class="ticket-datetime">${fecha} ${hora}</div>
-                <div class="ticket-warning">"Presupuesto no valido como factura"</div>
-            </div>
 
+            </div>
         </div>
-        
-        <!-- 
-        <div class="client-section">
-            <div class="section-title">CLIENTE:</div>
-            <div class="client-name">${orderData.customer_name || 'GUEST'}</div>
-            <div class="client-email">${orderData.customer_email || '---'}</div>
-        </div> 
-        -->
 
         <div class="business-client-section">
             <div class="business-data">
-
                 <div class="section-title"> DATOS DEL COMERCIO </div>
-
                 <div><strong>Razon Social:</strong> ROMA Multirubro</div>
-
                 <div><strong>Domicilio:</strong>San Lorenzo 764 </div>
-
                 <div><strong>Telefono:</strong> 3454XXXXX </div>
-
             </div>
 
             <div class="client-data">
-
                 <div class="section-title"> DATOS DEL CLIENTE </div>
-
                 <div><strong>Nombre:</strong>${orderData.customer_name}</div>
-
                 <div><strong>Email:</strong>${orderData.customer_email || '---'}</div>
-
                 <div><strong>Telefono:</strong>${orderData.customer_phone || '---'}</div>
-
                 <div><strong>Domicilio:</strong>${orderData.customer_address || '---'}</div>
-
             </div>
         </div>
         
